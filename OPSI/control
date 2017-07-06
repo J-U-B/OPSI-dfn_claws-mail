@@ -1,18 +1,18 @@
 [Package]
-version: 7
+version: 1
 depends: 
 incremental: False
 
 [Product]
 type: localboot
-id: 0_claws-mail
+id: 0_dfn_claws-mail
 name: Claws Mail
 description: An user-friendly, lightweight, and fast email client (and news reader), based on GTK+
  ___
  Homepage: http://www.claws-mail.org/
  Changelog: http://www.claws-mail.org/news.php
 advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
-Organization: MPIMSP
+Organization: DFN
 Release date: 2017-07-06
 version: 3.15.0
 priority: 0
@@ -83,7 +83,7 @@ default: ["none"]
 [Changelog]
 claws-mail 3.15.0-1 testing:
 	* initial
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-05 17:10:43 +0200
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-06 15:17:28 +0200
 
 
 
