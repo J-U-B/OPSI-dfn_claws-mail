@@ -1,7 +1,10 @@
 # Claws Mail #
 
-Diese OPSI-Paket fuer **Claws Mail** wurde aus dem internen Paket des *Max-Planck-Institut fuer Mikrostrukturphysik*
-abgeleitet und fuer die Verwendung im DFN-Repository angepasst und erweitert.
+Diese OPSI-Paket fuer **Claws Mail** wurde fuer das Repository des *DFN* und 
+des *Max-Planck-Instituts fuer Mikrostrukturphysik* erstellt.  
+Es wird versucht auf die Besonderheitden der jeweiligen Repositories einzugehen;
+entsprechend werden durch ein einfaches *Makefile* aus den Quellen verschiedene
+Pakete erstellt.
 
 
 ## Installation ##
@@ -54,6 +57,8 @@ siehe auch: http://www.silentinstall.org/nsis
 
 
 ## Anmerkungen/ToDo ##
+* Die Festlegung von *Claws Mail* als **Default-Mailer** hat im Test nicht funktioniert.
+Die Umsetzung der entsprechenden Property wurde daher noch nicht implementiert
 * Fuer die OPSI-Pakete wird noch ein ***Lizenzmodell*** benoetigt.
 
 ## Lizenzen ##
