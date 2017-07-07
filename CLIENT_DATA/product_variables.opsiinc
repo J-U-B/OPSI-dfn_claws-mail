@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-06 11:36:25 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:08:56 +0200
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -35,15 +35,15 @@ endif
 ;-----------------------------------------------------------
 if strPos($FullProductId$, "0_") = "0"
 	; no a testing package
-	set $ProductId$  = $FullProductId$ 
-	set $Testing$ = "false"
-	set $LogLvl$  = "5"
+	set $ProductId$  	= $FullProductId$ 
+	set $Testing$ 		= "false"
+	set $LogLvl$  		= "5"
 else
 	; this is a testing package
 	comment "Prefix for testing package detected"
-	set $ProductId$  = strPart($FullProductId$,"3",strLength($FullProductId$))
-	set $Testing$ = "true"
-	set $LogLvl$  = "7"
+	set $ProductId$  	= strPart($FullProductId$,"3",strLength($FullProductId$))
+	set $Testing$ 		= "true"
+	set $LogLvl$  		= "7"
 endif
 
 ;-----------------------------------------------------------
@@ -138,6 +138,7 @@ set $CustomPostUninstall$ 	= getProductProperty("custom_post_uninstall","none")
 ;-----------------------------------------------------------
 setlogLevel 				= $LogLvl$
 set $PSDETAIL$ 				= "%ScriptPath%\bin\psdetail.exe"
+set $PSDETAIL_mod$			= ""
 set $Kill_Running$ 			= GetProductProperty("kill_running", "False")
 
 Set $RegPathUninstall64$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"

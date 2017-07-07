@@ -9,11 +9,11 @@
 [Initial]
 ;======================================================================
 setLogLevel=5
-; Log Errors in Logfile but don't abort:
+; Log Errors in Logfile and abort:
 ExitOnError=true
 ; Show syntax errors in the script:
 ScriptErrorMessages=off
-; Dont trace step by step through the script: 
+; Dont trace step by step through the script:
 TraceMode=off 
 ; Let started programs run in front of the winst window
 StayOnTop=false 
@@ -113,7 +113,7 @@ set_link
        target: "$MainBin$"
        parameters:
        working_dir: "$InstallDir$"
-       icon_file:
+       icon_file: "$MainBin$"
        icon_index:
 end_link
 

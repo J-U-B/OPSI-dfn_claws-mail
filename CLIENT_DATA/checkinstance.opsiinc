@@ -1,19 +1,33 @@
 ;===============================================================================
 ; checkinstance.opsiinc
-; J. Boettge <boettge@mpi-halle.mpg.de> 2017-07-06 07:45:09 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de> 2017-07-07 15:20:21 +0200
 ;===============================================================================
 
+DefVar $PSDETAIL_opr$
+set $PSDETAIL_opr$="-e"
+set $PSDETAIL_mod$=""
 
 ;===============================================================================
 [sub_checkinstance]
 ;===============================================================================
 comment "Checking for running instances and kill it (if allowed)."
 
-;=== see product_variables.opsiinc:
-; set $PSDETAIL$ 		= "%ScriptPath%\bin\psdetail.exe"
-; set $Kill_Running$ 	= GetProductProperty("kill_running", "False")
+if FileExists($PSDETAIL$)
+	switch $PSDETAIL_mod$
+		case "-c"
+			set $PSDETAIL_opr$="-c"
+		endCase
+		case "-p"
+			set $PSDETAIL_opr$="-p"
+		endCase
+		case "-n"
+			set $PSDETAIL_opr$="-n"
+		endCase	
+		defaultCase
+			set $PSDETAIL_opr$="-e"
+		endCase					
+	endSwitch
 
-if FileExists($PSDETAIL$) 
 	winbatch_psdetail_count
 	set $Proc_Cnt$ = getLastExitCode
 	if $Proc_Cnt$ > "0"
@@ -43,9 +57,9 @@ endif
 ;===============================================================================
 [winbatch_psdetail_count]
 ;===============================================================================
-"$PSDETAIL$" -e "$MainBin$"
+"$PSDETAIL$" $PSDETAIL_opr$ "$MainBin$"
 
 ;===============================================================================
 [winbatch_psdetail_kill]
 ;===============================================================================
-"$PSDETAIL$" -k -e "$MainBin$"
+"$PSDETAIL$" -k $PSDETAIL_opr$ "$MainBin$"

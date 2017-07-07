@@ -1,5 +1,5 @@
 [Package]
-version: 1
+version: 2
 depends: 
 incremental: False
 
@@ -13,7 +13,7 @@ description: An user-friendly, lightweight, and fast email client (and news read
  Changelog: http://www.claws-mail.org/news.php
 advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
 Organization: {{ORGNAME}}
-Release date: 2017-07-06
+Release date: 2017-07-07
 version: 3.15.0
 priority: 0
 licenseRequired: False
@@ -41,20 +41,20 @@ description: which architecture (32/64 bit) should be installed (64 bit currentl
 values: ["32 bit", "64 bit", "sysnative"]
 default: ["32 bit"]
 
-[ProductProperty]
-type: unicode
-name: default_language
-multivalue: False
-editable: False
-description: application default language (Currently unused! Set LANG variable for user instead.)
-values: ["de_DE", "en_US"]
-default: ["en_US"]
+;[ProductProperty]
+;type: unicode
+;name: default_language
+;multivalue: False
+;editable: False
+;description: application default language (Currently unused! Set LANG variable for user instead.)
+;values: ["de_DE", "en_US"]
+;default: ["en_US"]
 
-[ProductProperty]
-type: bool
-name: set_default
-description: Set Claws Mail as default mail handler? (currently not working!)
-default: False
+;[ProductProperty]
+;type: bool
+;name: set_default
+;description: Set Claws Mail as default mail handler? (currently not working!)
+;default: False
 
 [ProductProperty]
 type: bool
@@ -81,9 +81,16 @@ values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
 [Changelog]
-claws-mail 3.15.0-1 testing:
+{{ORGPREFIX}}claws-mail 3.15.0-2 testing:
+	* Update PSDETAIL to v0.1.9.0dev
+	* extended checkinstance.opsiinc: search for part of commandline allowed
+	* delsub.opsiinc: kill pdf viewer with manual (if allowed)
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:22:42 +0200
+
+
+{{ORGPREFIX}}claws-mail 3.15.0-1 testing:
 	* initial
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-06 15:17:28 +0200
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 11:42:46 +0200
 
 
 

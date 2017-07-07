@@ -2,7 +2,7 @@
 
 Diese OPSI-Paket fuer **Claws Mail** wurde fuer das Repository des *DFN* und 
 des *Max-Planck-Instituts fuer Mikrostrukturphysik* erstellt.  
-Es wird versucht auf die Besonderheitden der jeweiligen Repositories einzugehen;
+Es wird versucht auf die Besonderheiten der jeweiligen Repositories einzugehen;
 entsprechend werden durch ein einfaches *Makefile* aus den Quellen verschiedene
 Pakete erstellt.
 

@@ -1,7 +1,7 @@
 ;=====================================================================
 ; delsub.opsiinc CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-06 11:05:06 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:15:41 +0200
 ;=====================================================================
 
 
@@ -129,7 +129,13 @@ if not (lower($Uninstaller$) = lower(stringReplace($UninstallString$,'"','')))
 endif
 
 ;=== check for running binaries
+;...the manual:
+set $MainBin$ = stringReplace($Uninst_RegDir$ + $Manual$, '\', '\\')
+set $PSDETAIL_mod$="-c"
+sub_checkinstance
+;...the application:
 set $MainBin$ = $Uninst_RegDir$ + $CheckBin$
+set $PSDETAIL_mod$=""
 sub_checkinstance
 
 ;=== run uninstaller
@@ -148,6 +154,7 @@ endif
 
 ;======================================================================
 [Winbatch_Uninstall]
+;======================================================================
 ; "$Uninstaller$" $Uninst_Opts$
 $UninstallString$  $Uninst_Opts$
 
@@ -155,7 +162,7 @@ $UninstallString$  $Uninst_Opts$
 ;======================================================================
 [Files_del_InstallDir]
 ;======================================================================
-delete -sf "$Uninst_RegDir$"
+delete -sfc "$Uninst_RegDir$"
 
 
 ;=====================================================================
