@@ -183,7 +183,7 @@ Dieses OPSI-Paket steht unter der *GNU General Public License* **GPLv3**.
 Ausgenommen von dieser Lizenz sind die unter **<code>bin/</code>** zu findenden
 Hilfsprogramme. Diese unterliegen ihren jeweiligen Lizenzen.
 
-<div id="lizenz_claws-mail"></div>
+<div id="lic_claws-mail"></div>
 
 ### claws-mail ###
 Das verwendete Logo steht unter der GPLv3.
@@ -191,7 +191,7 @@ Das verwendete Logo steht unter der GPLv3.
 Die Variationen fuer das OPSI-Paket wurden von mir unter Verwendung weiterer
 freier Grafiken erstellt
 
-<div id="lizenz_psdetail"></div>
+<div id="lic_psdetail"></div>
 
 ### psdetail ###
 **Autor** der Software: Jens Boettge <<boettge@mpi-halle.mpg.de>> 
