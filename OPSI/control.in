@@ -13,8 +13,8 @@ description: An user-friendly, lightweight, and fast email client (and news read
  Changelog: http://www.claws-mail.org/news.php
 advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
 Organization: {{ORGNAME}}
-Release date: 2017-07-07
-version: 3.15.0
+Release date: 2017-12-22
+version: 3.16.0
 priority: 0
 licenseRequired: False
 productClasses: web & mail
@@ -81,6 +81,11 @@ values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
 [Changelog]
+{{ORGPREFIX}}claws-mail 3.16.0-2 testing:
+	* update to claws-mail 3.16.0
+	* postinst: use ${PRODUCT_VERSION} for VERSION instead of "opsi-admin ..." command
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-12-22 08:17:31 +0100
+
 {{ORGPREFIX}}claws-mail 3.15.0-2 testing:
 	* Update PSDETAIL to v0.1.9.0dev
 	* extended checkinstance.opsiinc: search for part of commandline allowed

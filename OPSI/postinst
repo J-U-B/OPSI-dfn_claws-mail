@@ -88,10 +88,11 @@ rm -rf $TMP_DIR
 # download files from vendor:
 #=====================================================================
 # http://www.claws-mail.org/win32/
-# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.15.0-1-32bit.exe
-# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.15.0-1-64bit.exe
+# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-32bit.exe
+# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-64bit.exe
 
-VERSION=`opsi-admin -dS method getProduct_hash ${PRODUCT_ID} | grep productVersion | cut -d "=" -f 2`
+#VERSION=`opsi-admin -dS method getProduct_hash ${PRODUCT_ID} | grep productVersion | cut -d "=" -f 2`
+VERSION=${PRODUCT_VERSION}
 echo "Detected version for this package: ${VERSION}"
 PROD="claws-mail"
 BUILD="1"
