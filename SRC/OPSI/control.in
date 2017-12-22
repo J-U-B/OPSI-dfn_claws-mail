@@ -1,20 +1,20 @@
 [Package]
-version: 2
+version: {{O_PKG_VER}}
 depends: 
 incremental: False
 
 [Product]
 type: localboot
-id: {{TESTING}}{{ORGPREFIX}}claws-mail
+id: {{TESTPREFIX}}{{ORGPREFIX}}claws-mail
 name: Claws Mail
 description: An user-friendly, lightweight, and fast email client (and news reader), based on GTK+
  ___
  Homepage: http://www.claws-mail.org/
  Changelog: http://www.claws-mail.org/news.php
 advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
-Organization: {{ORGNAME}}
-Release date: 2017-12-22
-version: 3.16.0
+ Organization: {{ORGNAME}}
+ Release date: {{O_RELEASE_DATE}}
+version: {{O_SOFTWARE_VER}}
 priority: 0
 licenseRequired: False
 productClasses: web & mail
@@ -81,6 +81,12 @@ values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
 [Changelog]
+{{ORGPREFIX}}claws-mail 3.16.0-3:
+	* refresh of build environment
+	* allow creation of "batteries included" and "auto download" packages
+	* refresh readme.md
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-12-22 14:08:18 +0100
+	
 {{ORGPREFIX}}claws-mail 3.16.0-2 testing:
 	* update to claws-mail 3.16.0
 	* postinst: use ${PRODUCT_VERSION} for VERSION instead of "opsi-admin ..." command

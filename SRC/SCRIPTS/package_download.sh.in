@@ -1,0 +1,69 @@
+#! /bin/bash
+#=====================================================================
+# Download CLAWS-MAIL
+#=====================================================================
+# J. Boettge <boettge@mpi-halle.mpg.de>  2017-12-22 10:33:48 +0100
+#=====================================================================
+echo "=================================================="
+echo "Downloading required files from vendor"
+date
+echo "=================================================="
+# http://www.claws-mail.org/win32/
+# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-32bit.exe
+# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-64bit.exe
+
+if [ -z "$DST" ]; then
+	#fallback:
+	DST="./"
+	[ ! -d "$DST" ]  && mkdir $DST
+fi
+
+# remove trailing "/" in path:
+DST=${DST%\/}
+ERR=0
+
+PROD="{{O_SOFTWARE}}"
+BUILD="{{O_SOFTWARE_BUILD}}"
+VERSION="{{O_SOFTWARE_VER}}"
+echo "Detected version for this package: ${VERSION}"
+
+
+BASE="http://www.claws-mail.org/download.php?file=win32/claws-mail-${VERSION}-${BUILD}-%%ARCH%%.exe"
+
+CNT=0
+WGET_OPTS="--max-redirect=2 --no-cookies "
+FS_THRESHOLD=10000
+
+download()
+{	
+	DL_URL=$1
+	[ -n "$2" ] && PACKAGE=$2 || PACKAGE=`basename $DL_URL`
+	
+	let "CNT++"
+	echo -e "Retrieving [$PACKAGE]\n\tfrom: [${DL_URL}]";
+	if [ -f "${DST}/${PACKAGE}" ]; then
+		echo -e "\tfile already exists"
+	else
+		eval wget ${WGET_OPTS} -nv "${DL_URL}" -O "${DST}/${PACKAGE}"
+		if  [ ! -f "${DST}/${PACKAGE}" ]; then
+			let "ERR+=1<<$CNT"
+		else
+			FILESIZE=$(stat -c%s "${DST}/${PACKAGE}")
+			if [ "${FS_THRESHOLD}" -gt "${FILESIZE}" ]; then
+				echo -e "*E*  file has an unusual size; assuming error page"
+				rm -f "${DST}/${PACKAGE}"
+				let "ERR+=1<<$CNT"
+			else			
+				chmod g+r "${DST}/${PACKAGE}"
+			fi
+		fi
+	fi	
+}
+
+
+CNT=0
+for ARCH in "32bit" "64bit"; do
+	PKG_URL=${BASE//%%ARCH%%/$ARCH}
+	PACKAGE="${PROD}_${ARCH}_${VERSION}.exe"
+	download "${PKG_URL}"  "${PACKAGE}"
+done

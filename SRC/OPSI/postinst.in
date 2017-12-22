@@ -12,10 +12,19 @@
 #   PRODUCT_ID: id of the current product
 #   CLIENT_DATA_DIR: directory which contains the installed client data
 #=====================================================================
-# J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-05 12:53:11 +0200
+# J. Boettge <boettge@mpi-halle.mpg.de>	2017-12-22 12:29:02 +0100
 #=====================================================================
 
-LOGFILE=/tmp/${PRODUCT_ID}__opsi_package_install.log
+
+{{#ifdef_auto_download}}
+AUTO_DOWNLOAD="true"
+{{/ifdef_auto_download}}
+{{^ifdef_auto_download}}
+AUTO_DOWNLOAD="false"
+{{/ifdef_auto_download}}
+
+#LOGFILE=/tmp/${PRODUCT_ID}__opsi_package_install.log
+LOGFILE={{O_INST_LOG}}
 
 exec >> $LOGFILE
 exec 2>&1
@@ -84,14 +93,17 @@ echo "Removing temporary files..."
 rm -rf $TMP_DIR
 
 
-#=====================================================================
-# download files from vendor:
-#=====================================================================
+{{^ifdef_allinc}}
+[ "${AUTO_DOWNLOAD}" != "true" ] && exit 0
+
+echo "=================================================="
+echo "Downloading required files from vendor"
+date
+echo "=================================================="
 # http://www.claws-mail.org/win32/
 # 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-32bit.exe
 # 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-64bit.exe
 
-#VERSION=`opsi-admin -dS method getProduct_hash ${PRODUCT_ID} | grep productVersion | cut -d "=" -f 2`
 VERSION=${PRODUCT_VERSION}
 echo "Detected version for this package: ${VERSION}"
 PROD="claws-mail"
@@ -99,20 +111,43 @@ BUILD="1"
 
 BASE="http://www.claws-mail.org/download.php?file=win32/claws-mail-${VERSION}-${BUILD}-%%ARCH%%.exe"
 
+CNT=0
+WGET_OPTS="--max-redirect=2 --no-cookies "
+FS_THRESHOLD=10000
+
+download()
+{	
+	DL_URL=$1
+	[ -n "$2" ] && PACKAGE=$2 || PACKAGE=`basename $DL_URL`
+	
+	let "CNT++"
+	echo -e "Retrieving [$PACKAGE]\n\tfrom: [${DL_URL}]";
+	if [ -f "${DST}/${PACKAGE}" ]; then
+		echo -e "\tfile already exists"
+	else
+		eval wget ${WGET_OPTS} -nv "${DL_URL}" -O "${DST}/${PACKAGE}"
+		if  [ ! -f "${DST}/${PACKAGE}" ]; then
+			let "ERR+=1<<$CNT"
+		else
+			FILESIZE=$(stat -c%s "${DST}/${PACKAGE}")
+			if [ "${FS_THRESHOLD}" -gt "${FILESIZE}" ]; then
+				echo -e "*E*  file has an unusual size; assuming error page"
+				rm -f "${DST}/${PACKAGE}"
+				let "ERR+=1<<$CNT"
+			else			
+				chmod g+r "${DST}/${PACKAGE}"
+			fi
+		fi
+	fi	
+}
 
 
 CNT=0
 for ARCH in "32bit" "64bit"; do
 	PKG_URL=${BASE//%%ARCH%%/$ARCH}
 	PACKAGE="${PROD}_${ARCH}_${VERSION}.exe"
-	let "CNT++"
-	echo "Retrieving [$PACKAGE]";
-	if [ -f "${DST}/${PACKAGE}" ]; then
-		echo -e "\tfile already exists"
-	else
-		wget -nv "${PKG_URL}" -O "${DST}/${PACKAGE}"
-		[ ! -s "${DST}/${PACKAGE}" ] && let "ERR+=1<<$CNT"
-		chmod g+r "${DST}/${PACKAGE}"
-	fi
+	download "${PKG_URL}"  "${PACKAGE}"
 done
+{{/ifdef_allinc}}
+
 exit $ERR
