@@ -1,8 +1,8 @@
 ############################################################
 # OPSI package Makefile (CLAWS-MAIL)
-# Version: 1.1
+# Version: 2.2.2
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2017-12-22 12:49:39 +0100
+# 2018-02-19 10:14:44 +0100
 ############################################################
 
 .PHONY: header clean mpimsp dfn mpimsp_test dfn_test all_test all_prod all help download
@@ -10,25 +10,29 @@
 
 PWD = ${CURDIR}
 OPSI_BUILDER = opsi-makeproductfile
-BUILD_DIR = ./BUILD
+BUILD_DIR = BUILD
 DL_DIR = $(PWD)/DOWNLOAD
-PACKAGE_DIR = ./PACKAGES
-SRC_DIR = ./SRC
+PACKAGE_DIR = PACKAGES
+SRC_DIR = SRC
+SPEC ?= spec.json
 
+SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC)     | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+SW_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+SW_NAME := $(shell grep '"O_SOFTWARE"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+
+FILES_MASK := claws-mail-$(SW_VER)-*.exe
 FILES_EXPECTED = 2
 
 PYSTACHE = ./SRC/SCRIPTS/pystache_opsi.py
 BUILD_JSON = $(BUILD_DIR)/build.json
 CONTROL_IN = $(SRC_DIR)/OPSI/control.in
 CONTROL = $(BUILD_DIR)/OPSI/control
-DOWNLOAD_SH_IN = ./SRC/SCRIPTS/package_download.sh.in
-DOWNLOAD_SH = $(DL_DIR)/package_download.sh
+DOWNLOAD_SH_IN = ./SRC/CLIENT_DATA/product_downloader.sh.in
+DOWNLOAD_SH = $(PWD)/product_downloader.sh
 OPSI_FILES := control preinst postinst
 FILES_IN := $(basename $(shell (cd $(SRC_DIR)/CLIENT_DATA; ls *.in 2>/dev/null)))
 FILES_OPSI_IN := $(basename $(shell (cd $(SRC_DIR)/OPSI; ls *.in 2>/dev/null)))
 TODAY := $(shell date +"%Y-%m-%d")
-
-SPEC ?= spec.json
 
 ifneq ($(MAKECMDGOALS),download)
 	ONLY_DOWNLOAD=true
@@ -40,10 +44,17 @@ ALLINC ?= false
 ALLINC_SEL := "[true] [false]"
 AFX := $(firstword $(ALLINC))
 AFY := $(shell echo $(AFX) | tr A-Z a-z)
-ifeq (,$(findstring [$(AFY)],$(ALLINC_SEL)))
+AFZ := $(findstring [$(AFY)],$(ALLINC_SEL))
+ifeq (,$(AFZ))
 	ALLINCLUSIVE := false
 else
 	ALLINCLUSIVE := $(AFY)
+endif
+
+ifeq ($(ALLINCLUSIVE),true)
+	CUSTOMNAME := ""
+else
+	CUSTOMNAME := "dl"
 endif
 
 
@@ -58,22 +69,29 @@ else
 	BUILD_FORMAT = $(AFY)
 endif
 
-SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC) | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-SW_BUILD := $(shell grep '"O_SOFTWARE_BUILD"' $(SPEC) | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
 
 leave_err:
 	exit 1
 
 var_test:
 	@echo "=================================================================="
-	@echo "* SPEC file: [$(SPEC)]"
+	@echo "* Software Name         : [$(SW_NAME)]"
+	@echo "* Software Version      : [$(SW_VER)]"
+	@echo "* Package Build         : [$(SW_BUILD)]"
+	@echo "* SPEC file             : [$(SPEC)]"
 	@echo "* Batteries included    : [$(ALLINC)] --> [$(ALLINCLUSIVE)]"
+	@echo "* Download Prefix       : [$(CUSTOMNAME)]"
 	@echo "* OPSI Archive Types    : [$(ARCHIVE_TYPES)]"
 	@echo "* OPSI Archive Format   : [$(ARCHIVE_FORMAT)] --> $(BUILD_FORMAT)"
 	@echo "* Templates OPSI        : [$(FILES_OPSI_IN)]"
 	@echo "* Templates CLIENT_DATA : [$(FILES_IN)]"
+	@echo "* Files Mask            : [$(FILES_MASK)]"
 	@echo "=================================================================="
-
+	@echo "* Installer files in $(DL_DIR):"
+	@for F in `ls -1 $(DL_DIR)/$(FILES_MASK) | sed -re 's/.*\/(.*)$$/\1/' `; do echo "    $$F"; done 
+	@ $(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
+	@echo "* $(NUM_FILES) files found"
+	@echo "=================================================================="
 
 header:
 	@echo "=================================================================="
@@ -88,50 +106,51 @@ fix_rights: header
 
 mpimsp: header
 	@echo "---------- building MPIMSP package -------------------------------"
-	@make 	TESTPREFIX=""	 \
-			ORGNAME="MPIMSP" \
-			ORGPREFIX=""     \
-			STAGE="release"  \
+	@make 	TESTPREFIX=""	 			\
+			ORGNAME="MPIMSP" 			\
+			ORGPREFIX=""     			\
+			STAGE="release"  			\
 	build
 
 dfn: header
 	@echo "---------- building DFN package ----------------------------------"
-	@make 	TESTPREFIX=""    \
-			ORGNAME="DFN"    \
-			ORGPREFIX="dfn_" \
-			STAGE="release"  \
+	@make 	TESTPREFIX=""    			\
+			ORGNAME="DFN"    			\
+			ORGPREFIX="dfn_" 			\
+			STAGE="release"  			\
 	build
 
 mpimsp_test: header
 	@echo "---------- building MPIMSP testing package -----------------------"
-	@make 	TESTPREFIX="0_"	 \
-			ORGNAME="MPIMSP" \
-			ORGPREFIX=""     \
-			STAGE="testing"  \
+	@make 	TESTPREFIX="0_"	 			\
+			ORGNAME="MPIMSP" 			\
+			ORGPREFIX=""     			\
+			STAGE="testing"  			\
 	build
 
 dfn_test: header
 	@echo "---------- building DFN testing package --------------------------"
-	@make 	TESTPREFIX="test_"  \
-			ORGNAME="DFN"    \
-			ORGPREFIX="dfn_" \
-			STAGE="testing"  \
+	@make 	TESTPREFIX="test_"  		\
+			ORGNAME="DFN"    			\
+			ORGPREFIX="dfn_" 			\
+			STAGE="testing"  			\
 	build
 
 dfn_test_0: header
 	@echo "---------- building DFN testing package --------------------------"
-	@make 	TESTPREFIX="0_"  \
-			ORGNAME="DFN"    \
-			ORGPREFIX="dfn_" \
-			STAGE="testing"  \
+	@make 	TESTPREFIX="0_"  			\
+			ORGNAME="DFN"    			\
+			ORGPREFIX="dfn_" 			\
+			STAGE="testing"  			\
 	build
 
 dfn_test_noprefix: header
 	@echo "---------- building DFN testing package --------------------------"
-	@make 	TESTPREFIX=""    \
-			ORGNAME="DFN"    \
-			ORGPREFIX="dfn_" \
-			STAGE="testing"  \
+	@make 	TESTPREFIX=""    			\
+			ORGNAME="DFN"    			\
+			ORGPREFIX="dfn_" 			\
+			CUSTOMNAME="$(CUSTOMNAME)"      \
+			STAGE="testing"  			\
 	build
 
 clean_packages: header
@@ -172,6 +191,7 @@ build_dirs:
 	@if [ ! -d "$(BUILD_DIR)" ]; then mkdir -p "$(BUILD_DIR)"; fi
 	@if [ ! -d "$(BUILD_DIR)/OPSI" ]; then mkdir -p "$(BUILD_DIR)/OPSI"; fi
 	@if [ ! -d "$(BUILD_DIR)/CLIENT_DATA" ]; then mkdir -p "$(BUILD_DIR)/CLIENT_DATA"; fi
+	@if [ ! -d "$(PACKAGE_DIR)" ]; then mkdir -p "$(PACKAGE_DIR)"; fi
 	
 copy_from_src:	build_dirs
 	@echo "* Copying files"
@@ -180,7 +200,7 @@ copy_from_src:	build_dirs
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/bin  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiscript  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiinc     $(BUILD_DIR)/CLIENT_DATA/
-	$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/claws-mail_*_$(SW_VER).exe 2>/dev/null | wc -l))
+	$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
 	@if [ "$(ALLINCLUSIVE)" = "true" ]; then \
 		echo "  * building batteries included package"; \
 		if [ ! -d "$(BUILD_DIR)/CLIENT_DATA/files" ]; then \
@@ -194,7 +214,7 @@ copy_from_src:	build_dirs
 		echo "      * files found   : $(NUM_FILES)"; \
 		echo "      * files expected: $(FILES_EXPECTED)"; \
 		[ "$(NUM_FILES)" -lt "$(FILES_EXPECTED)" ] && exit 1; \
-		for F in `ls $(DL_DIR)/claws-mail_*_$(SW_VER).exe`; do echo "      + $$F"; ln $$F $(BUILD_DIR)/CLIENT_DATA/files/; done; \
+		for F in `ls $(DL_DIR)/$(FILES_MASK)`; do echo "      + $$F"; ln $$F $(BUILD_DIR)/CLIENT_DATA/files/; done; \
 		ls -l $(BUILD_DIR)/CLIENT_DATA/files/ ;\
 	else \
 		echo "    * removing $(BUILD_DIR)/CLIENT_DATA/files"; \
@@ -224,18 +244,17 @@ build_json:
 	                         \"M_ALLINC\"     : \"$(ALLINCLUSIVE)\",    \
 	                         \"M_TESTING\"    : \"$(TESTING)\"        }" > $(BUILD_JSON)
 
-
 download: build_json
 	@if [ "$(ALLINCLUSIVE)" = "true" -o  $(ONLY_DOWNLOAD) ]; then \
 		rm -f $(DOWNLOAD_SH) ;\
 		$(PYSTACHE) $(DOWNLOAD_SH_IN) $(BUILD_JSON) > $(DOWNLOAD_SH) ;\
 		chmod +x $(DOWNLOAD_SH) ;\
 		if [ ! -d "$(DL_DIR)" ]; then mkdir -p "$(DL_DIR)"; fi ;\
-		DST=$(DL_DIR) $(DOWNLOAD_SH) ;\
+		DEST_DIR=$(DL_DIR) $(DOWNLOAD_SH) ;\
 	fi
 	
 	
-build: download copy_from_src
+build: download clean copy_from_src
 	@make build_json
 	
 	for F in $(FILES_OPSI_IN); do \
@@ -249,11 +268,19 @@ build: download copy_from_src
 		rm -f $(BUILD_DIR)/CLIENT_DATA/$$F; \
 		${PYSTACHE} $(SRC_DIR)/CLIENT_DATA/$$F.in $(BUILD_JSON) > $(BUILD_DIR)/CLIENT_DATA/$$F; \
 	done
+	chmod +x $(BUILD_DIR)/CLIENT_DATA/*.sh
 	
 	@echo "* OPSI Archive Format: $(BUILD_FORMAT)"
 	@echo "* Building OPSI package"
-	@cd "$(CURDIR)/$(PACKAGE_DIR)" && $(OPSI_BUILDER) -F $(BUILD_FORMAT) -k -m $(CURDIR)/$(BUILD_DIR)
-	
+	if [ -z $(CUSTOMNAME) ]; then \
+		cd "$(CURDIR)/$(PACKAGE_DIR)" && $(OPSI_BUILDER) -F $(BUILD_FORMAT) -k -m $(CURDIR)/$(BUILD_DIR); \
+	else \
+		cd $(CURDIR)/$(BUILD_DIR) && \
+		for D in OPSI CLIENT_DATA SERVER_DATA; do \
+			if [ -d "$$D" ] ; then mv $$D $$D.$(CUSTOMNAME); fi; \
+		done && \
+		cd "$(CURDIR)/$(PACKAGE_DIR)" && $(OPSI_BUILDER) -F $(BUILD_FORMAT) -k -m $(CURDIR)/$(BUILD_DIR) -c $(CUSTOMNAME); \
+	fi; \
 	cd $(CURDIR)
 
 
@@ -261,4 +288,4 @@ all_test:  header mpimsp_test dfn_test dfn_test_0
 
 all_prod : header mpimsp dfn
 
-all : header mpimsp dfn mpimsp_test qfn_test dfn_test_0
+all : header mpimsp dfn mpimsp_test dfn_test dfn_test_0

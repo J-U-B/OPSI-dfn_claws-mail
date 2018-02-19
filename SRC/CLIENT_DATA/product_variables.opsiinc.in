@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:08:56 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-19 10:06:05 +0100
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -152,9 +152,9 @@ include_append "%ScriptPath%\exitcode_nsis.opsiinc"
 
 
 ; packages (for example):
-; 		claws-mail_32bit_3.15.0.exe
-; 		claws-mail_64bit_3.15.0.exe
-Set $Installer$		  	= "%ScriptPath%\files\" + $StrippedProductId$ + "_" + $sw_arch$ + "bit_" + $Version$ + ".exe"
+; 		claws-mail-3.16.0-1-32bit.exe
+; 		claws-mail-3.16.0-1-64bit.exe
+Set $Installer$		  	= "%ScriptPath%\files\" + $StrippedProductId$ + "-" + $Version$ + "-{{O_SOFTWARE_BUILD}}-" + $sw_arch$ + "bit"+ ".exe"
 Set $InstallDir$      	= $InstallBase$ + "\" + stringReplace($ProductName$," ", "") + "\"
 ;Set $InstallDir$      	= $InstallBase$ + "\" + $ProductName$ + "\"
 Set $MinimumSpace$    	= "140 MB"

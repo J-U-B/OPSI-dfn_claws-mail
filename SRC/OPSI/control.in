@@ -81,6 +81,14 @@ values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
 [Changelog]
+claws-mail 3.16.0-4:
+	* Makefile improvements, support for custom names (self download packages)
+	* streamlined postinst.in
+	* moved and modified: package_download.sh.in to product_downloader.sh.in
+	* adjusted name for $Installer$	
+	* Update psdetail -> v0.1.9.0dev	
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-19 10:41:40 +0100
+
 {{ORGPREFIX}}claws-mail 3.16.0-3:
 	* refresh of build environment
 	* allow creation of "batteries included" and "auto download" packages
