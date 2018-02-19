@@ -2,7 +2,7 @@
 # OPSI package Makefile (CLAWS-MAIL)
 # Version: 2.2.2
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2018-02-19 10:14:44 +0100
+# 2018-02-19 13:21:23 +0100
 ############################################################
 
 .PHONY: header clean mpimsp dfn mpimsp_test dfn_test all_test all_prod all help download
@@ -14,7 +14,14 @@ BUILD_DIR = BUILD
 DL_DIR = $(PWD)/DOWNLOAD
 PACKAGE_DIR = PACKAGES
 SRC_DIR = SRC
+
+### spec file:
 SPEC ?= spec.json
+ifeq ($(shell test -f $(SPEC) && echo OK),OK)
+    $(info * spec file found: $(SPEC))
+else
+    $(error Error: spec file NOT found: $(SPEC))
+endif
 
 SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC)     | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
 SW_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
@@ -34,12 +41,14 @@ FILES_IN := $(basename $(shell (cd $(SRC_DIR)/CLIENT_DATA; ls *.in 2>/dev/null))
 FILES_OPSI_IN := $(basename $(shell (cd $(SRC_DIR)/OPSI; ls *.in 2>/dev/null)))
 TODAY := $(shell date +"%Y-%m-%d")
 
-ifneq ($(MAKECMDGOALS),download)
+### Only download packages?
+ifeq ($(MAKECMDGOALS),download)
 	ONLY_DOWNLOAD=true
 else
 	ONLY_DOWNLOAD=false
 endif
 
+### build "batteries included' package?
 ALLINC ?= false
 ALLINC_SEL := "[true] [false]"
 AFX := $(firstword $(ALLINC))
@@ -149,7 +158,6 @@ dfn_test_noprefix: header
 	@make 	TESTPREFIX=""    			\
 			ORGNAME="DFN"    			\
 			ORGPREFIX="dfn_" 			\
-			CUSTOMNAME="$(CUSTOMNAME)"      \
 			STAGE="testing"  			\
 	build
 
@@ -245,7 +253,8 @@ build_json:
 	                         \"M_TESTING\"    : \"$(TESTING)\"        }" > $(BUILD_JSON)
 
 download: build_json
-	@if [ "$(ALLINCLUSIVE)" = "true" -o  $(ONLY_DOWNLOAD) ]; then \
+	@echo "**Debug** [ALLINC=$(ALLINCLUSIVE)]  [ONLY_DOWNLOAD=$(ONLY_DOWNLOAD)]"
+	@if [ "$(ALLINCLUSIVE)" = "true" -o  $(ONLY_DOWNLOAD) = "true" ]; then \
 		rm -f $(DOWNLOAD_SH) ;\
 		$(PYSTACHE) $(DOWNLOAD_SH_IN) $(BUILD_JSON) > $(DOWNLOAD_SH) ;\
 		chmod +x $(DOWNLOAD_SH) ;\

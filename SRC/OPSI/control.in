@@ -86,7 +86,8 @@ claws-mail 3.16.0-4:
 	* streamlined postinst.in
 	* moved and modified: package_download.sh.in to product_downloader.sh.in
 	* adjusted name for $Installer$	
-	* Update psdetail -> v0.1.9.0dev	
+	* Update psdetail -> v0.1.9.0dev
+	* moved: pystache_opsi.py
 	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-19 10:41:40 +0100
 
 {{ORGPREFIX}}claws-mail 3.16.0-3:
