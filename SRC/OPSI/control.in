@@ -81,6 +81,10 @@ values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
 [Changelog]
+claws-mail 3.16.0-5
+	* fix OS detection for Windows 10
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-27 12:38:05 +0100
+
 claws-mail 3.16.0-4:
 	* Makefile improvements, support for custom names (self download packages)
 	* streamlined postinst.in

@@ -1,6 +1,6 @@
 {  
 	"_": "=== OPSI package variables ===",
-	"O_PKG_VER"         : "4",
+	"O_PKG_VER"         : "5",
 	"O_SOFTWARE_VER"    : "3.16.0",
 	"O_SOFTWARE_BUILD"  : "1",
 	"O_SOFTWARE"        : "claws-mail",
