@@ -3,46 +3,101 @@
 # Download files from vendor
 # Product: CLAWS-MAIL
 #
-# Version 1.1
-# Jens Boettge <boettge@mpi-halle.mpg.de>  2018-02-19 08:58:22 +0100
+# Version 1.2
+# Jens Boettge <boettge@mpi-halle.mpg.de>  2018-07-30 08:34:36 +0200
 #=======================================================================
 # link examples:
 # http://www.claws-mail.org/win32/
-# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-32bit.exe
-# 	http://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-1-64bit.exe
+# 	https://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-3-32bit.exe
+# 	https://www.claws-mail.org/download.php?file=win32/claws-mail-3.16.0-3-64bit.exe
 #=======================================================================
 
 ERR=0
+THIS_DIR=$(dirname $(readlink -f $0))
+
+WGET=$(which wget)
+if [ -z "$WGET" ];   then echo "Error: wget not found" ;  exit 200 ; fi
+MD5EXE=$(which md5sum)
+if [ -z "$MD5EXE" ]; then echo "Error: md5sum not found"; exit 201 ; fi
+
+
+if [ -f "${THIS_DIR}/Makefile" ] ; then
+	# Skript is running in the context of building OPSI package via make
+	MODE="make"	
+else
+	# Skript is running during installing package on depot
+	MODE="depot"
+fi
 
 PROD="{{O_SOFTWARE}}"
 VERSION={{O_SOFTWARE_VER}}
 BUILD={{O_SOFTWARE_BUILD}}
-[[ -n "$PRODUCT_VERSION" ]] && VERSION=${PRODUCT_VERSION}
-[[ -z "$VERSION" ]] && ERR=100
-[[ "$VERSION" =~ "O_SOFTWARE_VER" ]] && ERR=110
+# [[ -n "$PRODUCT_VERSION" ]] && VERSION=${PRODUCT_VERSION}
+[[ -z "$VERSION" ]] && ERR=220
+[[ "$VERSION" =~ "O_SOFTWARE_VER" ]] && ERR=221
 if [ "$ERR" -gt 0 ]; then
 	echo "Error: cannot get software version"
-	exit 100
+	exit $ERR
+fi
+[[ -z "$BUILD" ]] && ERR=222
+[[ "$BUILD" =~ "O_SOFTWARE_BUILD" ]] && ERR=223
+if [ "$ERR" -gt 0 ]; then
+	echo "Error: cannot get software build number"
+	exit $ERR
 fi
 
-BASE="http://www.claws-mail.org/download.php?file=win32/claws-mail-${VERSION}-${BUILD}-%%ARCH%%.exe"
+BASE="https://www.claws-mail.org/download.php?file=win32/claws-mail-${VERSION}-${BUILD}-%%ARCH%%.exe"
 PKG_FILE="${PROD}-${VERSION}-${BUILD}-%%ARCH%%.exe"
 
 # in postinst: DEST_DIR=DST="${CLIENT_DATA_DIR}/files"
 # in Makefile: DEST_DIR=./DOWNLOAD
 # ...otherwise use default:
 if [ -z "${DEST_DIR}" ]; then
-	THIS_DIR=$(dirname $(readlink -f $0))
-	[ -f "spec.json" ] && DEST_DIR="${THIS_DIR}/DOWNLOAD" || DEST_DIR="${THIS_DIR}/files"
+	[ -f "${THIS_DIR}/Makefile" ] && DEST_DIR="${THIS_DIR}/DOWNLOAD" || DEST_DIR="${THIS_DIR}/files"
 fi
 [ ! -d "${DEST_DIR}" ]  && mkdir ${DEST_DIR}
 # remove trailing "/" in path:
 DEST_DIR=${DEST_DIR%\/}
 
+MD5SUMS="${PROD}.md5sums"
 CNT=0
 WGET_OPTS="--max-redirect=2 --no-cookies "
 FS_THRESHOLD=10000
 
+calc_md5()
+{
+	#calculate md5sums in "make" mode
+	[ -z "$1" ] && return
+	MD5EX=$(grep $1 ${DEST_DIR}/${MD5SUMS} 2>/dev/null)
+	if [ -z "$MD5EX" ]; then
+		# md5sum not yet calculated
+		echo -e "\tCalculating md5sum for $1"
+		(cd ${DEST_DIR} && md5sum $1 >> ${MD5SUMS})
+		[ $? -gt 0 ] && let "ERR+=1"
+	else
+		echo -e "\tmd5sum found for $1: [${MD5EX%% *}]"
+	fi
+}
+
+check_md5()
+{
+		#check md5sums in "depot" mode
+		if [ ! -f "${THIS_DIR}/$MD5SUMS" ]; then
+			echo "Error: $MD5SUMS not found!"
+			let "ERR+=100"
+		else
+			MD5LINES=$(wc -l ${THIS_DIR}/$MD5SUMS)
+			if [ "${MD5LINES%% *}" -ne "$CNT" ] ; then
+				echo "Error: number of given md5sums doesn't match file count"
+				let "ERR+=101"
+				return
+			else
+				echo "Checking md5sums for ${MD5LINES%% *} file(s)"
+			fi
+			(cd ${DEST_DIR} && md5sum -c ${THIS_DIR}/$MD5SUMS)
+			[ $? -gt 0 ] && let "ERR+=102"
+		fi
+}
 download()
 {       
         DL_URL=$1
@@ -51,22 +106,23 @@ download()
         let "CNT++"
         echo -e "Retrieving [$PACKAGE]\n\tfrom: [${DL_URL}]";
         if [ -f "${DEST_DIR}/${PACKAGE}" ]; then
-                echo -e "\tfile already exists"
+                echo -e "\tFile already exists"
         else
                 eval wget ${WGET_OPTS} -nv "${DL_URL}" -O "${DEST_DIR}/${PACKAGE}"
                 if  [ ! -f "${DEST_DIR}/${PACKAGE}" ]; then
-                        let "ERR+=1<<$CNT"
+                        let "ERR+=1"
                 else
                         FILESIZE=$(stat -c%s "${DEST_DIR}/${PACKAGE}")
                         if [ "${FS_THRESHOLD}" -gt "${FILESIZE}" ]; then
                                 echo -e "*E*  file has an unusual size; assuming error page"
                                 rm -f "${DEST_DIR}/${PACKAGE}"
-                                let "ERR+=1<<$CNT"
+                                let "ERR+=1"
                         else                    
                                 chmod g+r "${DEST_DIR}/${PACKAGE}"
                         fi
                 fi
-        fi      
+        fi  
+        [ "$MODE" = "make" ] && calc_md5 ${PACKAGE}    
 }
 
 echo "=================================================================="
@@ -83,4 +139,8 @@ for ARCH in "32bit" "64bit"; do
          
         download "${PKG_URL}"  "${PACKAGE}"
 done
+
+[ "$MODE" = "depot" ] && check_md5  
+# MD5SUMS="DOWNLOAD/${PROD}.md5sums" check_md5 
+
 exit $ERR

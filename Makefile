@@ -1,34 +1,26 @@
 ############################################################
 # OPSI package Makefile (CLAWS-MAIL)
-# Version: 2.2.2
+# Version: 2.3.0
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2018-02-19 13:21:23 +0100
+# 2018-07-30 07:40:19 +0200
 ############################################################
 
 .PHONY: header clean mpimsp dfn mpimsp_test dfn_test all_test all_prod all help download
 .DEFAULT_GOAL := help
 
 PWD = ${CURDIR}
-OPSI_BUILDER = opsi-makeproductfile
 BUILD_DIR = BUILD
 DL_DIR = $(PWD)/DOWNLOAD
 PACKAGE_DIR = PACKAGES
 SRC_DIR = SRC
-
-### spec file:
-SPEC ?= spec.json
-ifeq ($(shell test -f $(SPEC) && echo OK),OK)
-    $(info * spec file found: $(SPEC))
-else
-    $(error Error: spec file NOT found: $(SPEC))
+OPSI_BUILDER := $(shell which opsi-makepackage)
+ifeq ($(OPSI_BUILDER),)
+	override OPSI_BUILDER := $(shell which opsi-makeproductfile)
+	ifeq ($(OPSI_BUILDER),)
+		$(error Error: opsi-make(package|productfile) not found!)
+	endif
 endif
-
-SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC)     | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-SW_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-SW_NAME := $(shell grep '"O_SOFTWARE"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-
-FILES_MASK := claws-mail-$(SW_VER)-*.exe
-FILES_EXPECTED = 2
+$(info * OPSI_BUILDER = $(OPSI_BUILDER))
 
 PYSTACHE = ./SRC/SCRIPTS/pystache_opsi.py
 BUILD_JSON = $(BUILD_DIR)/build.json
@@ -40,6 +32,24 @@ OPSI_FILES := control preinst postinst
 FILES_IN := $(basename $(shell (cd $(SRC_DIR)/CLIENT_DATA; ls *.in 2>/dev/null)))
 FILES_OPSI_IN := $(basename $(shell (cd $(SRC_DIR)/OPSI; ls *.in 2>/dev/null)))
 TODAY := $(shell date +"%Y-%m-%d")
+
+### spec file:
+SPEC ?= spec.json
+ifeq ($(shell test -f $(SPEC) && echo OK),OK)
+    $(info * spec file found: $(SPEC))
+else
+    $(error Error: spec file NOT found: $(SPEC))
+endif
+
+SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC)     | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+SW_BUILD := $(shell grep '"O_SOFTWARE_BUILD"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+SW_NAME := $(shell grep '"O_SOFTWARE"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+PKG_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+
+FILES_MASK := $(SW_NAME)-$(SW_VER)-$(SW_BUILD)-*.exe
+FILES_EXPECTED = 2
+
+MD5SUM_FILE := $(SW_NAME).md5sums
 
 ### Only download packages?
 ifeq ($(MAKECMDGOALS),download)
@@ -66,6 +76,17 @@ else
 	CUSTOMNAME := "dl"
 endif
 
+### Keep all files in files/ directory?
+KEEPFILES ?= false
+KEEPFILES_SEL := "[true] [false]"
+KFX := $(firstword $(KEEPFILES))
+override KFX := $(shell echo $(KFX) | tr A-Z a-z)
+override KFX := $(findstring [$(KFX)],$(KEEPFILES_SEL))
+ifeq (,$(KFX))
+	override KEEPFILES := false
+else
+	override KEEPFILES := $(shell echo $(KFX) | tr -d '[]')
+endif
 
 ARCHIVE_FORMAT ?= cpio
 ARCHIVE_TYPES :="[cpio] [tar]"
@@ -86,15 +107,17 @@ var_test:
 	@echo "=================================================================="
 	@echo "* Software Name         : [$(SW_NAME)]"
 	@echo "* Software Version      : [$(SW_VER)]"
-	@echo "* Package Build         : [$(SW_BUILD)]"
+	@echo "* Softwate Build        : [$(SW_BUILD)]"
+	@echo "* Package Build         : [$(PKG_BUILD)]"
 	@echo "* SPEC file             : [$(SPEC)]"
 	@echo "* Batteries included    : [$(ALLINC)] --> [$(ALLINCLUSIVE)]"
-	@echo "* Download Prefix       : [$(CUSTOMNAME)]"
+	@echo "* Custom Name           : [$(CUSTOMNAME)]"
 	@echo "* OPSI Archive Types    : [$(ARCHIVE_TYPES)]"
 	@echo "* OPSI Archive Format   : [$(ARCHIVE_FORMAT)] --> $(BUILD_FORMAT)"
 	@echo "* Templates OPSI        : [$(FILES_OPSI_IN)]"
 	@echo "* Templates CLIENT_DATA : [$(FILES_IN)]"
 	@echo "* Files Mask            : [$(FILES_MASK)]"
+	@echo "* Keep files            : [$(KEEPFILES)]"
 	@echo "=================================================================="
 	@echo "* Installer files in $(DL_DIR):"
 	@for F in `ls -1 $(DL_DIR)/$(FILES_MASK) | sed -re 's/.*\/(.*)$$/\1/' `; do echo "    $$F"; done 
@@ -166,12 +189,14 @@ clean_packages: header
 	@rm -f $(PACKAGE_DIR)/*.md5 $(PACKAGE_DIR)/*.opsi $(PACKAGE_DIR)/*.zsync
 	
 clean: header
-	@echo "---------- cleaning  build directory -----------------------------"
+	@echo "---------- cleaning  build directory & downloader-----------------"
 	@rm -rf $(BUILD_DIR)	
+	@rm -f product_downloader.sh
+	
 	
 realclean: header clean
-	@echo "---------- cleaning  download directory --------------------------"
-	@rm -rf $(DL_DIR)	
+	@echo "---------- cleaning download directory ---------------------------"
+	@rm -rf $(DL_DIR)
 		
 help: header
 	@echo "Valid targets: "
@@ -188,9 +213,12 @@ help: header
 	@echo ""
 	@echo "Options:"
 	@echo "	SPEC=<filename>                 (default: spec.json)"
-	@echo "			...alternative spec file"
+	@echo "			Use the given alternative spec file."
 	@echo "	ALLINC=[true|false]             (default: false)"
-	@echo "			...include software in OPSI package?"
+	@echo "			Include software in OPSI package?"
+	@echo "	KEEPFILES=[true|false]          (default: false)"
+	@echo "			Keep really all previous files from files/?"
+	@echo "			If false only files matching this package version are kept."
 	@echo "	ARCHIVE_FORMAT=[cpio|tar]       (default: cpio)"
 	@echo ""
 
@@ -200,15 +228,23 @@ build_dirs:
 	@if [ ! -d "$(BUILD_DIR)/OPSI" ]; then mkdir -p "$(BUILD_DIR)/OPSI"; fi
 	@if [ ! -d "$(BUILD_DIR)/CLIENT_DATA" ]; then mkdir -p "$(BUILD_DIR)/CLIENT_DATA"; fi
 	@if [ ! -d "$(PACKAGE_DIR)" ]; then mkdir -p "$(PACKAGE_DIR)"; fi
+build_md5:
+	@echo "* Creating md5sum file for installation archives ($(MD5SUM_FILE))"
+	if [ -f "$(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE)" ]; then \
+		rm -f $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE); \
+	fi
+	@grep -i "$(SW_NAME).$(SW_VER)." $(DL_DIR)/$(MD5SUM_FILE)>> $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE) 
 	
-copy_from_src:	build_dirs
+
+copy_from_src:	build_dirs build_md5
 	@echo "* Copying files"
 	@cp -upL $(SRC_DIR)/CLIENT_DATA/LICENSE  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upL $(SRC_DIR)/CLIENT_DATA/readme.md  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/bin  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiscript  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiinc     $(BUILD_DIR)/CLIENT_DATA/
-	$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
+	# @cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsifunc    $(BUILD_DIR)/CLIENT_DATA/
+	@$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
 	@if [ "$(ALLINCLUSIVE)" = "true" ]; then \
 		echo "  * building batteries included package"; \
 		if [ ! -d "$(BUILD_DIR)/CLIENT_DATA/files" ]; then \
@@ -249,7 +285,8 @@ build_json:
 	                         \"M_ORGNAME\"    : \"$(ORGNAME)\",       \
 	                         \"M_ORGPREFIX\"  : \"$(ORGPREFIX)\",     \
 	                         \"M_TESTPREFIX\" : \"$(TESTPREFIX)\",    \
-	                         \"M_ALLINC\"     : \"$(ALLINCLUSIVE)\",    \
+	                         \"M_ALLINC\"     : \"$(ALLINCLUSIVE)\",  \
+	                         \"M_KEEPFILES\"  : \"$(KEEPFILES)\",     \
 	                         \"M_TESTING\"    : \"$(TESTING)\"        }" > $(BUILD_JSON)
 
 download: build_json
@@ -271,6 +308,10 @@ build: download clean copy_from_src
 		rm -f $(BUILD_DIR)/OPSI/$$F; \
 		${PYSTACHE} $(SRC_DIR)/OPSI/$$F.in $(BUILD_JSON) > $(BUILD_DIR)/OPSI/$$F; \
 	done	
+	
+	if [ -e $(BUILD_DIR)/OPSI/control -a -e changelog ]; then \
+		cat changelog >> $(BUILD_DIR)/OPSI/control; \
+	fi
 	
 	for F in $(FILES_IN); do \
 		echo "* Creating CLIENT_DATA/$$F"; \

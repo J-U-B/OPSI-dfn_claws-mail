@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-27 12:23:45 +0100
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-07-30 10:43:05 +0200
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -31,20 +31,27 @@ if not ($SystemType$ = "64 Bit System")
 endif
 
 ;-----------------------------------------------------------
-;*** detect testing package:
+;*** get LogLevel from property
+Set $LogLevelDefault$ = GetProductProperty("log_level","default")
 ;-----------------------------------------------------------
-if strPos($FullProductId$, "0_") = "0"
-	; no a testing package
+;*** detect testing package:
+if (strPos($FullProductId$, "0_") = "0") and (strPos($FullProductId$, "test_") = "0")
+	; not a testing package
 	set $ProductId$  	= $FullProductId$ 
 	set $Testing$ 		= "false"
-	set $LogLvl$  		= "5"
+	if ($LogLevelDefault$ = "default")
+		set $LogLevelDefault$  	= "{{DEFAULT_RELEASE_LOGLEVEL}}"
+	endif
 else
 	; this is a testing package
 	comment "Prefix for testing package detected"
-	set $ProductId$  	= strPart($FullProductId$,"3",strLength($FullProductId$))
+	set $ProductId$  		= strPart($FullProductId$, calculate(strPos($FullProductId$,"_") + "+1"), strLength($FullProductId$))
 	set $Testing$ 		= "true"
-	set $LogLvl$  		= "7"
+	if ($LogLevelDefault$ = "default")
+		set $LogLevelDefault$  	= "{{DEFAULT_TESTING_LOGLEVEL}}"
+	endif
 endif
+setlogLevel = $LogLevelDefault$
 
 ;-----------------------------------------------------------
 ;*** detect DFN package:
@@ -114,13 +121,15 @@ endif
 ;*** property: language - "de_DE, "en_US"
 ; application language defined via environment variable LANG
 ;-----------------------------------------------------------
-Set $sw_lang$ 				= GetProductProperty("default_language","en_US")
+; ...not yet implemented
+; Set $sw_lang$ 				= GetProductProperty("default_language","en_US")
 
 ;-----------------------------------------------------------
 ;*** other properties:
 ; 		* set as default mail handler?
 ;-----------------------------------------------------------
-set $pr_set_default$		= GetProductProperty("set_default","False")
+; ...not yet implemented
+; set $pr_set_default$		= GetProductProperty("set_default","False")
 
 ;-----------------------------------------------------------
 ;*** property: create desktop/startmenu/quickstart link?
@@ -154,7 +163,7 @@ include_append "%ScriptPath%\exitcode_nsis.opsiinc"
 ; packages (for example):
 ; 		claws-mail-3.16.0-1-32bit.exe
 ; 		claws-mail-3.16.0-1-64bit.exe
-Set $Installer$		  	= "%ScriptPath%\files\" + $StrippedProductId$ + "-" + $Version$ + "-{{O_SOFTWARE_BUILD}}-" + $sw_arch$ + "bit"+ ".exe"
+Set $Installer$		  	= "%ScriptPath%\files\" + $StrippedProductId$ + "-{{O_SOFTWARE_VER}}-{{O_SOFTWARE_BUILD}}-" + $sw_arch$ + "bit"+ ".exe"
 Set $InstallDir$      	= $InstallBase$ + "\" + stringReplace($ProductName$," ", "") + "\"
 ;Set $InstallDir$      	= $InstallBase$ + "\" + $ProductName$ + "\"
 Set $MinimumSpace$    	= "140 MB"

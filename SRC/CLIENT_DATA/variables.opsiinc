@@ -4,7 +4,7 @@
 ; This file contains all possible variables, excluding the opsi-system
 ; variables, for the opsi-winst scripts in use.
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:08:05 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-07-30 10:38:02 +0200
 ;=====================================================================
 
 DefStringList $MAP$
@@ -33,7 +33,7 @@ DefVar $Inst_Loc$
 DefVar $Inst_Opts$
 DefVar $Inst_Ver$
 DefVar $isDFN$
-DefVar $LogLvl$
+DefVar $LogLevelDefault$
 DefVar $MainBin$
 DefVar $Manual$
 DefVar $MinimumSpace$

@@ -1,3 +1,7 @@
+{{! ========================================================================== }}
+{{!  Claws-Mails CONTROL                                                       }}
+{{!  J. Boettge <boettge@mpi-halle.mpg.de> 2018-07-30 09:05:57 +0200           }}
+{{! ========================================================================== }}
 [Package]
 version: {{O_PKG_VER}}
 depends: 
@@ -14,7 +18,7 @@ description: An user-friendly, lightweight, and fast email client (and news read
 advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
  Organization: {{ORGNAME}}
  Release date: {{O_RELEASE_DATE}}
-version: {{O_SOFTWARE_VER}}
+version: {{O_SOFTWARE_VER}}.{{O_SOFTWARE_BUILD}}
 priority: 0
 licenseRequired: False
 productClasses: web & mail
@@ -80,42 +84,24 @@ description: Define filename for include script in custom directory after deinst
 values: ["custom_test.opsiinc", "none", "post-uninstall.opsiinc"]
 default: ["none"]
 
+[ProductProperty]
+type: unicode
+name: log_level
+multivalue: False
+editable: False
+{{#ifdef_testing}}
+description: Loglevel for this package ({{DEFAULT_TESTING_LOGLEVEL}})
+{{/ifdef_testing}}
+{{^ifdef_testing}}
+description: Loglevel for this package ({{DEFAULT_RELEASE_LOGLEVEL}})
+{{/ifdef_testing}}
+values: ["default", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
+default: ["default"]
+
+
 [Changelog]
-claws-mail 3.16.0-5
-	* fix OS detection for Windows 10
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-27 12:38:05 +0100
-
-claws-mail 3.16.0-4:
-	* Makefile improvements, support for custom names (self download packages)
-	* streamlined postinst.in
-	* moved and modified: package_download.sh.in to product_downloader.sh.in
-	* adjusted name for $Installer$	
-	* Update psdetail -> v0.1.9.0dev
-	* moved: pystache_opsi.py
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-02-19 10:41:40 +0100
-
-{{ORGPREFIX}}claws-mail 3.16.0-3:
-	* refresh of build environment
-	* allow creation of "batteries included" and "auto download" packages
-	* refresh readme.md
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-12-22 14:08:18 +0100
-	
-{{ORGPREFIX}}claws-mail 3.16.0-2 testing:
-	* update to claws-mail 3.16.0
-	* postinst: use ${PRODUCT_VERSION} for VERSION instead of "opsi-admin ..." command
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-12-22 08:17:31 +0100
-
-{{ORGPREFIX}}claws-mail 3.15.0-2 testing:
-	* Update PSDETAIL to v0.1.9.0dev
-	* extended checkinstance.opsiinc: search for part of commandline allowed
-	* delsub.opsiinc: kill pdf viewer with manual (if allowed)
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:22:42 +0200
-
-
-{{ORGPREFIX}}claws-mail 3.15.0-1 testing:
-	* initial
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 11:42:46 +0200
-
+{{! The changelog is outsourced  to a separate file in the root of this project. }}
+{{! It will be included on building the OPSI package. }}
 
 
 
