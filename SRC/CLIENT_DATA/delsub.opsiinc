@@ -1,7 +1,7 @@
 ;=====================================================================
 ; delsub.opsiinc CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2017-07-07 15:15:41 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 07:28:36 +0200
 ;=====================================================================
 
 
@@ -110,7 +110,7 @@ endif
 [Sub_Uninstall]
 ;======================================================================
 ShowBitmap $Img_Uninstall$ $ProductName$
-Message "Uninstalling previous setup of " + $ProductName$ + " " + $Version$
+Message "Uninstalling previous setup of " + $ProductName$ + " " + $Inst_Ver$
 
 ;=== get uninstall directory
 sub_check_PathVar
