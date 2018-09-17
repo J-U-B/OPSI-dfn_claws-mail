@@ -1,7 +1,7 @@
 ;=====================================================================
 ; delsub.opsiinc CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 07:28:36 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 16:17:31 +0200
 ;=====================================================================
 
 
@@ -140,6 +140,7 @@ sub_checkinstance
 
 ;=== run uninstaller
 LinkFolder_RemoveDesktopLink
+LinkFolder_delete_StartMenuLinks
 Winbatch_Uninstall
 sub_check_exitcode_nsis
 if ($ExitCode$ = "0") and not ($Uninst_RegDir$ = "")
@@ -171,6 +172,17 @@ delete -sfc "$Uninst_RegDir$"
 set_basefolder common_desktopdirectory
 set_subfolder ""
 delete_element $ProductName$
+
+
+;=====================================================================
+[LinkFolder_delete_StartMenuLinks]
+;=====================================================================
+set_basefolder common_programs
+set_subfolder "$ProductName$"
+delete_element "$StrippedProductId$"
+delete_element "$StrippedProductId$ Manual"
+set_subfolder ""
+delete_subfolder "$ProductName$"
 
 
 ;======================================================================

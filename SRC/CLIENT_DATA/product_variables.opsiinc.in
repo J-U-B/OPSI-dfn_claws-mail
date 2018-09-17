@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2018-07-30 10:43:05 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 16:17:46 +0200
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -143,11 +143,17 @@ set $CustomPostInstall$ 	= getProductProperty("custom_post_install","none")
 set $CustomPostUninstall$ 	= getProductProperty("custom_post_uninstall","none")
 
 ;-----------------------------------------------------------
+;*** select PSDETAIL:
+set $PSDETAIL$ 			= "%ScriptPath%\bin\psdetail.exe"
+if (CompareDotSeparatedNumbers($NTVersion$, ">=", "10.0"))
+	set $PSDETAIL$ 			= "%ScriptPath%\bin\psdetail4.exe"
+endif
+set $PSDETAIL_mod$			= ""
+
+;-----------------------------------------------------------
 ;*** misc settings
 ;-----------------------------------------------------------
 setlogLevel 				= $LogLvl$
-set $PSDETAIL$ 				= "%ScriptPath%\bin\psdetail.exe"
-set $PSDETAIL_mod$			= ""
 set $Kill_Running$ 			= GetProductProperty("kill_running", "False")
 
 Set $RegPathUninstall64$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"

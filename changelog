@@ -2,7 +2,9 @@ claws-mail 3.17.1.1-6
 	* product update to 3.17.1-1
 	* fixed package version in spec.json
 	* fixed displayed version string on uninstall
-	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 07:29:11 +0200
+	* psdetail4 for Windows 10
+	* delete start menue entries on uninstall
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 16:29:43 +0200
 
 claws-mail 3.16.0.3-6
 	* product update to 3.16.0-3
