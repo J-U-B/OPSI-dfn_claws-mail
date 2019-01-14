@@ -1,3 +1,7 @@
+claws-mail 3.17.3.1-7
+	* product update to 3.17.3-1
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-01-14 07:05:39 +0100
+
 claws-mail 3.17.1.1-7
 	* support for building packages with o4i prefix
 	* fixed preinst.in/postinst.in
