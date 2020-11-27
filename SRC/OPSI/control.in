@@ -1,6 +1,6 @@
 {{! ========================================================================== }}
 {{!  Claws-Mails CONTROL                                                       }}
-{{!  J. Boettge <boettge@mpi-halle.mpg.de> 2018-09-17 07:16:30 +0200           }}
+{{!  J. Boettge <boettge@mpi-halle.mpg.de> 2020-11-27 22:18:52 +0100           }}
 {{! ========================================================================== }}
 [Package]
 version: {{O_PKG_VER}}
@@ -13,11 +13,13 @@ id: {{TESTPREFIX}}{{ORGPREFIX}}claws-mail
 name: Claws Mail
 description: An user-friendly, lightweight, and fast email client (and news reader), based on GTK+
  ___
- Homepage: http://www.claws-mail.org/
- Changelog: https://www.claws-mail.org/NEWS
-advice: Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
+ Maintainer: Jens Boettge <boettge@mpi-halle.mpg.de>
  Organization: {{ORGNAME}}
  Release date: {{O_RELEASE_DATE}}
+ ___
+ Homepage: http://www.claws-mail.org/
+ Changelog: https://www.claws-mail.org/NEWS
+advice:
 version: {{O_SOFTWARE_VER}}.{{O_SOFTWARE_BUILD}}
 priority: 0
 licenseRequired: False

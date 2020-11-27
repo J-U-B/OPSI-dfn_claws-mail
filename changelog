@@ -1,3 +1,8 @@
+claws-mail 3.17.4.1-8
+	* compatibility with opsi-winst 4.12.3.16 and above ensured: cmd64 replaced
+	* adjusted control
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2020-11-27 22:17:53 +0100
+	
 claws-mail 3.17.4.1-7
 	* product update to 3.17.4-1
 	-- J. Boettge <boettge@mpi-halle.mpg.de>  2019-08-30 10:55:57 +0200
