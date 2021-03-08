@@ -1,7 +1,7 @@
 ;=====================================================================
 ; product specific variables CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2018-10-26 10:38:20 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2021-03-08 13:25:57 +0100
 ;=====================================================================
 
 include_insert "%ScriptPath%\variables.opsiinc"
@@ -16,7 +16,7 @@ Set $NTVersion$   		= GetMsVersionInfo
 ;-----------------------------------------------------------
 ;*** basic requirements
 ;-----------------------------------------------------------
-requiredWinstVersion >= "4.11.6"
+requiredWinstVersion >= "4.12.0"
 
 if CompareDotSeparatedNumbers($NTVersion$, "<", "6.1")
 	LogError "OS is not Windows 7 or above"
@@ -54,30 +54,36 @@ endif
 setlogLevel = $LogLevelDefault$
 
 ;-----------------------------------------------------------
+;*** helper functions
+;-----------------------------------------------------------
+importlib "helpers.opsifunc"
+
+;-----------------------------------------------------------
 ;*** detect O4I/DFN package:
 ;-----------------------------------------------------------
 if (strPos($FullProductId$, "o4i_") = "0") AND (strPos($FullProductId$, "dfn_") = "0")
-	set $isDFN$ = "false"
+	set $isO4I$ = "false"
 	set $StrippedProductId$ = $ProductId$
 else
-	set $isDFN$ = "true"
+	set $isO4I$ = "true"
 	set $StrippedProductId$ = strPart($ProductId$,"5",strLength($ProductId$))
 endif
 
 ;-----------------------------------------------------------
 ;*** Images
 ;-----------------------------------------------------------
-if ($isDFN$ = "true")
-	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_dfn.png"
+if ($isO4I$ = "true")
+	set $Img_Install$       = "%ScriptPath%\images\" + $StrippedProductId$ + "_install_dfn.png"
 else
-	set $Img_Install$		= "%ScriptPath%\images\" + $StrippedProductId$ + "_install.png"
+	set $Img_Install$       = "%ScriptPath%\images\" + $StrippedProductId$ + "_install.png"
 endif
-set $Img_Install_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_install_custom.png"
-Set $Img_Uninstall$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall.png"
-Set $Img_Uninstall_Custom$	= "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall_custom.png"
-Set $Img_Prepare$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_prepare.png"
-Set $Img_Plugins$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_plugins.png"
-Set $Img_Update$			= "%ScriptPath%\images\" + $StrippedProductId$ + "_update.png"
+set $Img_Install_Custom$    = "%ScriptPath%\images\" + $StrippedProductId$ + "_install_custom.png"
+Set $Img_Uninstall$         = "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall.png"
+Set $Img_Uninstall_Custom$  = "%ScriptPath%\images\" + $StrippedProductId$ + "_uninstall_custom.png"
+Set $Img_Prepare$           = "%ScriptPath%\images\" + $StrippedProductId$ + "_prepare.png"
+Set $Img_Plugins$           = "%ScriptPath%\images\" + $StrippedProductId$ + "_plugins.png"
+Set $Img_Update$            = "%ScriptPath%\images\" + $StrippedProductId$ + "_update.png"
+Set $Img_Defer$             = "%ScriptPath%\images\" + $StrippedProductId$ + "_defer.png"
 
 comment "preparing..."
 ShowBitmap $Img_Prepare$ $ProductName$
@@ -159,6 +165,12 @@ set $Kill_Running$ 			= GetProductProperty("kill_running", "False")
 Set $RegPathUninstall64$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
 Set $RegPathUninstall32$ 	= "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
 
+;-------------------------------------------------------
+; filter for opsiServiceCall productOnClient_getObjects:
+;-------------------------------------------------------
+set $ProductFilter$	        = "*claws-mail"
+set $ProductVersionFilter$  = "*"
+
 ;-----------------------------------------------------------
 ;*** specific settings
 ;-----------------------------------------------------------
@@ -174,6 +186,7 @@ Set $InstallDir$      	= $InstallBase$ + "\" + stringReplace($ProductName$," ", 
 ;Set $InstallDir$      	= $InstallBase$ + "\" + $ProductName$ + "\"
 Set $MinimumSpace$    	= "140 MB"
 Set $CheckBin$       	= $StrippedProductId$ + ".exe"
+Set $PathToExe$         = $InstallDir$ + $CheckBin$
 Set $Manual$			= $StrippedProductId$ + "-manual.pdf"
 Set $SearchPattern$ 	= $ProductName$
 Set $Uninst_ID_std$	   	= "ClawsMail"

@@ -1,6 +1,6 @@
 ;===============================================================================
 ; checkinstance.opsiinc
-; J. Boettge <boettge@mpi-halle.mpg.de> 2017-07-07 15:20:21 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de> 2021-03-08 13:24:35 +0100
 ;===============================================================================
 
 DefVar $PSDETAIL_opr$
@@ -41,7 +41,14 @@ if FileExists($PSDETAIL$)
 			endif
 		else
 			logError $Proc_Cnt$+" running instance(s) of " + $MainBin$ + " found, but I'm not allowed to kill them."
-			isFatalError "running instance"
+			; isFatalError "running instance"
+			comment "DEFERRING ACTION"
+			if (FileExists($Img_Defer$))
+				ShowBitmap $Img_Defer$	 $ProductName$
+			endif
+			Message "Deferring action for running application"
+			set $result$ = currentProductSetReport("deferred")
+			isSuspended
 		endif
 	else
 		if $Proc_Cnt$ = "0"

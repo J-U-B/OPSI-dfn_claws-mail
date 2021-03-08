@@ -1,3 +1,20 @@
+claws-mail 3.17.8.1-9
+	* product update to 3.17.8-1
+	* downloader: support for curl; default is now curl
+	* adjusted Makefile:
+		* switched from pystace to mustache (Go)
+		* new target pdf (create PDF with pandoc)
+		* support for *.opsifunc
+	* adjusted advice in control
+	* if `kill_running` is prohibited, `defer` instead of raising fatalError
+	* added Code of Conduct
+	* added readme.pdf
+	* added helpers.opsifunc v1.7
+	* added mustache 32/64
+	* added style for pandoc
+	* moved claws-mail.xcf out of final OPSI packages
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2021-03-08 13:43:18 +0100
+
 claws-mail 3.17.4.1-8
 	* compatibility with opsi-winst 4.12.3.16 and above ensured: cmd64 replaced
 	* adjusted control

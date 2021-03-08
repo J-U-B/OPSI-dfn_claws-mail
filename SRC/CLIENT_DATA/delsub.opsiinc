@@ -1,7 +1,7 @@
 ;=====================================================================
 ; delsub.opsiinc CLAWS-MAIL
 ;
-; J. Boettge <boettge@mpi-halle.mpg.de>  2018-09-17 16:17:31 +0200
+; J. Boettge <boettge@mpi-halle.mpg.de>  2021-03-08 09:02:48 +0100
 ;=====================================================================
 
 
@@ -43,16 +43,17 @@ if not ( count ($ResultList$) = "0" )
 			ShowBitmap $Img_Uninstall$ $ProductName$
 		endif
 	endif	
-	
-	;=== measure time
-	set $TimeDiff$ = getDiffTimeSec
-	Message  "Removal time: " + $TimeDiff$ + " seconds"	
-	
 else
 	comment "Empty result list while searching for " + $ProductName$ + " in registry - does not seem to be installed"
 endif	
 
+;=== update productOnClient information on depot server
+Message "Updating status information on depot"
+set $result$ = removeProductVerOnClientStatus($ProductFilter$, $ProductVersionFilter$)
 
+;=== measure time
+set $TimeDiff$ = getDiffTimeSec
+Message  "Removal time: " + $TimeDiff$ + " seconds"
 
 
 ;=======================================
@@ -145,10 +146,16 @@ Winbatch_Uninstall
 sub_check_exitcode_nsis
 if ($ExitCode$ = "0") and not ($Uninst_RegDir$ = "")
 	;=== does the installation directory still exist?
+		sleepSeconds "2"
 		if (FileExists($Inst_Loc$))
 			logWarning "Install directory still exists: [" + $Inst_Loc$ + "]"
 			;=== try final cleanup
 			Files_del_InstallDir
+			if (FileExists($Inst_Loc$))
+				logWarning "The install directory still exists!"
+			else
+				comment "Install directory removed successfully"
+			endif
 		endif
 endif	
 

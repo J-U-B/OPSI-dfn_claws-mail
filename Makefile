@@ -1,18 +1,29 @@
 ############################################################
 # OPSI package Makefile (CLAWS-MAIL)
-# Version: 2.3.2
+# Version: 2.4.0
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2018-10-26 10:41:09 +0200
+# 2021-03-08 08:55:46 +0100
 ############################################################
 
-.PHONY: header clean mpimsp dfn mpimsp_test dfn_test all_test all_prod all help download
+.PHONY: header clean mpimsp mpimsp_test o4i o4i_test dfn dfn_test all_test all_prod all help pdf
 .DEFAULT_GOAL := help
+
+### defaults:
+DEFAULT_SPEC = spec.json
+DEFAULT_ALLINC = true
+DEFAULT_KEEPFILES = false
+DEFAULT_ARCHIVEFORMAT = cpio
+### to keep the changelog inside the control set CHANGELOG_TGT to an empty string
+### otherwise the given filename will be used:
+CHANGELOG_TGT = changelog.txt
+#CHANGELOG_TGT =
 
 PWD = ${CURDIR}
 BUILD_DIR = BUILD
 DL_DIR = $(PWD)/DOWNLOAD
 PACKAGE_DIR = PACKAGES
 SRC_DIR = SRC
+
 OPSI_BUILDER := $(shell which opsi-makepackage)
 ifeq ($(OPSI_BUILDER),)
 	override OPSI_BUILDER := $(shell which opsi-makeproductfile)
@@ -22,7 +33,7 @@ ifeq ($(OPSI_BUILDER),)
 endif
 $(info * OPSI_BUILDER = $(OPSI_BUILDER))
 
-PYSTACHE = ./SRC/SCRIPTS/pystache_opsi.py
+MUSTACHE = ./SRC/TOOLS/mustache.32
 BUILD_JSON = $(BUILD_DIR)/build.json
 CONTROL_IN = $(SRC_DIR)/OPSI/control.in
 CONTROL = $(BUILD_DIR)/OPSI/control
@@ -32,9 +43,10 @@ OPSI_FILES := control preinst postinst
 FILES_IN := $(basename $(shell (cd $(SRC_DIR)/CLIENT_DATA; ls *.in 2>/dev/null)))
 FILES_OPSI_IN := $(basename $(shell (cd $(SRC_DIR)/OPSI; ls *.in 2>/dev/null)))
 TODAY := $(shell date +"%Y-%m-%d")
+TMP_FILE := $(shell mktemp -u)
 
 ### spec file:
-SPEC ?= spec.json
+SPEC ?= $(DEFAULT_SPEC)
 ifeq ($(shell test -f $(SPEC) && echo OK),OK)
     $(info * spec file found: $(SPEC))
 else
@@ -42,9 +54,9 @@ else
 endif
 
 SW_VER := $(shell grep '"O_SOFTWARE_VER"' $(SPEC)     | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-SW_BUILD := $(shell grep '"O_SOFTWARE_BUILD"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+SW_BUILD := $(shell grep '"O_SOFTWARE_BUILD"' $(SPEC) | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
 SW_NAME := $(shell grep '"O_SOFTWARE"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
-PKG_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)        | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
+PKG_BUILD := $(shell grep '"O_PKG_VER"' $(SPEC)       | sed -e 's/^.*\s*:\s*\"\(.*\)\".*$$/\1/' )
 
 FILES_MASK := $(SW_NAME)-$(SW_VER)-$(SW_BUILD)-*.exe
 FILES_EXPECTED = 2
@@ -59,7 +71,7 @@ else
 endif
 
 ### build "batteries included' package?
-ALLINC ?= false
+ALLINC ?= $(DEFAULT_ALLINC)
 ALLINC_SEL := "[true] [false]"
 AFX := $(firstword $(ALLINC))
 AFY := $(shell echo $(AFX) | tr A-Z a-z)
@@ -77,7 +89,7 @@ else
 endif
 
 ### Keep all files in files/ directory?
-KEEPFILES ?= false
+KEEPFILES ?= $(DEFAULT_KEEPFILES)
 KEEPFILES_SEL := "[true] [false]"
 KFX := $(firstword $(KEEPFILES))
 override KFX := $(shell echo $(KFX) | tr A-Z a-z)
@@ -88,7 +100,7 @@ else
 	override KEEPFILES := $(shell echo $(KFX) | tr -d '[]')
 endif
 
-ARCHIVE_FORMAT ?= cpio
+ARCHIVE_FORMAT ?= $(DEFAULT_ARCHIVEFORMAT)
 ARCHIVE_TYPES :="[cpio] [tar]"
 AFX := $(firstword $(ARCHIVE_FORMAT))
 AFY := $(shell echo $(AFX) | tr A-Z a-z)
@@ -98,7 +110,6 @@ ifeq (,$(findstring [$(AFY)],$(ARCHIVE_TYPES)))
 else
 	BUILD_FORMAT = $(AFY)
 endif
-
 
 leave_err:
 	exit 1
@@ -118,6 +129,7 @@ var_test:
 	@echo "* Templates CLIENT_DATA : [$(FILES_IN)]"
 	@echo "* Files Mask            : [$(FILES_MASK)]"
 	@echo "* Keep files            : [$(KEEPFILES)]"
+	@echo "* Changelog target      : [$(CHANGELOG_TGT)]"
 	@echo "=================================================================="
 	@echo "* Installer files in $(DL_DIR):"
 	@for F in `ls -1 $(DL_DIR)/$(FILES_MASK) | sed -re 's/.*\/(.*)$$/\1/' `; do echo "    $$F"; done 
@@ -130,11 +142,6 @@ header:
 	@echo "                      Building OPSI package(s)"
 	@echo "=================================================================="
 
-fix_rights: header
-	@echo "---------- setting rights for PACKAGES folder --------------------"
-	chgrp -R opsiadmin $(PACKAGE_DIR)
-	chmod g+rx $(PACKAGE_DIR)
-	chmod g+r $(PACKAGE_DIR)/*
 
 mpimsp: header
 	@echo "---------- building MPIMSP package -------------------------------"
@@ -189,7 +196,7 @@ o4i_test_noprefix: header
 dfn: header
 	@echo "---------- building DFN package ----------------------------------"
 	@make 	TESTPREFIX=""    			\
-			ORGNAME="DFN"    			\
+			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="release"  			\
 	build
@@ -197,7 +204,7 @@ dfn: header
 dfn_test: header
 	@echo "---------- building DFN testing package --------------------------"
 	@make 	TESTPREFIX="test_"  		\
-			ORGNAME="DFN"    			\
+			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
 	build
@@ -205,7 +212,7 @@ dfn_test: header
 dfn_test_0: header
 	@echo "---------- building DFN testing package --------------------------"
 	@make 	TESTPREFIX="0_"  			\
-			ORGNAME="DFN"    			\
+			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
 	build
@@ -213,25 +220,12 @@ dfn_test_0: header
 dfn_test_noprefix: header
 	@echo "---------- building DFN testing package --------------------------"
 	@make 	TESTPREFIX=""    			\
-			ORGNAME="DFN"    			\
+			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
 	build
 
 
-clean_packages: header
-	@echo "---------- cleaning packages, checksums and zsync ----------------"
-	@rm -f $(PACKAGE_DIR)/*.md5 $(PACKAGE_DIR)/*.opsi $(PACKAGE_DIR)/*.zsync
-	
-clean: header
-	@echo "---------- cleaning  build directory & downloader-----------------"
-	@rm -rf $(BUILD_DIR)	
-	@rm -f product_downloader.sh
-	
-	
-realclean: header clean
-	@echo "---------- cleaning download directory ---------------------------"
-	@rm -rf $(DL_DIR)
 		
 help: header
 	@echo "Valid targets: "
@@ -247,8 +241,9 @@ help: header
 	@echo "	dfn_test_noprefix"
 	@echo "	all_prod"
 	@echo "	all_test"
-	@echo "	clean"
-	@echo "	clean_packages"
+	@echo "	clean              - cleanup $(BUILD_DIR)"
+	@echo "	clean_packages     - cleanup $(PACKAGE_DIR)"
+	@echo "	fix_rights         - setting rights for $(PACKAGE_DIR)"
 	@echo ""
 	@echo "Options:"
 	@echo "	SPEC=<filename>                 (default: spec.json)"
@@ -260,6 +255,59 @@ help: header
 	@echo "			If false only files matching this package version are kept."
 	@echo "	ARCHIVE_FORMAT=[cpio|tar]       (default: cpio)"
 	@echo ""
+
+clean_packages: header
+	@echo "---------- cleaning packages, checksums and zsync ----------------"
+	@rm -f $(PACKAGE_DIR)/*.md5 $(PACKAGE_DIR)/*.opsi $(PACKAGE_DIR)/*.zsync
+
+clean: header
+	@echo "---------- cleaning  build directory & downloader-----------------"
+	@rm -rf $(BUILD_DIR)
+	@rm -f product_downloader.sh
+
+realclean: header clean
+	@echo "---------- cleaning download directory ---------------------------"
+	@rm -rf $(DL_DIR)
+
+
+fix_rights: header
+	@echo "---------- setting rights for PACKAGES folder --------------------"
+	chgrp -R opsiadmin $(PACKAGE_DIR)
+	chmod g+rx $(PACKAGE_DIR)
+	chmod g+r $(PACKAGE_DIR)/*
+
+
+pdf:
+	@# requirements for ths script (under Debian/Ubuntu):
+	@#    pandoc
+	@#    texlive-xetex
+	@#    texlive-latex-base
+	@#    texlive-fonts-recommended
+	@#    texlive-latex-recommended
+	@if [ -f "readme.md" ]; then \
+		if [ ! -e readme.pdf -o readme.pdf -ot readme.md ]; then \
+			echo "* Converting readme.md to readme.pdf"; \
+			cat readme.md | sed -re 's/^.*<!-- \b(START|END)\b PANDOC_PDF .*$$//' \
+			              | sed -re 's/^(<!-- START GIT_MARKDOWN .*-->)/\1<!--/'  \
+			              | sed -re 's/^(<!-- END GIT_MARKDOWN .*-->)/-->\1/'     \
+			              > $(BUILD_DIR)/readme_tmp.md && \
+			pandoc "$(BUILD_DIR)/readme_tmp.md" \
+				--pdf-engine=xelatex \
+				-f markdown \
+				-H SRC/DOCU/readme.sty \
+				-V linkcolor:blue \
+				-V geometry:a4paper \
+				-V geometry:margin=30mm \
+				-V mainfont="DejaVu Serif" \
+				-V monofont="DejaVu Sans Mono" \
+				-o "readme.pdf"; \
+			rm -f $(BUILD_DIR)/readme_tmp.md \
+		else \
+			echo "* readme.pdf seems to be up to date"; \
+		fi \
+	else \
+		echo "* Error: readme.md is missing!"; \
+	fi
 
 build_dirs:
 	@echo "* Creating/checking directories"
@@ -282,7 +330,8 @@ copy_from_src:	build_dirs build_md5
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/bin  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiscript  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiinc     $(BUILD_DIR)/CLIENT_DATA/
-	# @cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsifunc    $(BUILD_DIR)/CLIENT_DATA/
+	# @cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsilib     $(BUILD_DIR)/CLIENT_DATA/
+	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsifunc     $(BUILD_DIR)/CLIENT_DATA/
 	@$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
 	@if [ "$(ALLINCLUSIVE)" = "true" ]; then \
 		echo "  * building batteries included package"; \
@@ -317,45 +366,69 @@ build_json:
 	@if [ ! -f "$(SPEC)" ]; then echo "*Error* spec file not found: \"$(SPEC)\""; exit 1; fi
 	@if [ ! -d "$(BUILD_DIR)" ]; then mkdir -p "$(BUILD_DIR)"; fi
 	@$(if $(filter $(STAGE),testing), $(eval TESTING :="true"), $(eval TESTING := "false"))
+	@$(if $(filter $(ORGPREFIX),dfn_), $(eval LEGACY :="true"), $(eval LEGACY := "false"))
+	@echo "* Legacy build: $(LEGACY)"
 	@echo "* Creating $(BUILD_JSON)"
 	@rm -f $(BUILD_JSON)
-	$(PYSTACHE) $(SPEC)   "{ \"M_TODAY\"      : \"$(TODAY)\",         \
-	                         \"M_STAGE\"      : \"$(STAGE)\",         \
-	                         \"M_ORGNAME\"    : \"$(ORGNAME)\",       \
-	                         \"M_ORGPREFIX\"  : \"$(ORGPREFIX)\",     \
-	                         \"M_TESTPREFIX\" : \"$(TESTPREFIX)\",    \
-	                         \"M_ALLINC\"     : \"$(ALLINCLUSIVE)\",  \
-	                         \"M_KEEPFILES\"  : \"$(KEEPFILES)\",     \
-	                         \"M_TESTING\"    : \"$(TESTING)\"        }" > $(BUILD_JSON)
+	@echo "{\n\
+              \"M_TODAY\"      : \"$(TODAY)\",\n\
+              \"M_STAGE\"      : \"$(STAGE)\",\n\
+              \"M_ORGNAME\"    : \"$(ORGNAME)\",\n\
+              \"M_ORGPREFIX\"  : \"$(ORGPREFIX)\",\n\
+              \"M_TESTPREFIX\" : \"$(TESTPREFIX)\",\n\
+              \"M_LEGACY\"     : \"$(LEGACY)\",\n\
+              \"M_KEEPFILES\"  : \"$(KEEPFILES)\",\n\
+              \"M_TESTING\"    : \"$(TESTING)\"\n}"      > $(TMP_FILE)
+	@cat  $(TMP_FILE)
+	@$(MUSTACHE) $(TMP_FILE) $(SPEC)	 > $(BUILD_JSON)
+	@rm -f $(TMP_FILE)
 
 download: build_json
 	@echo "**Debug** [ALLINC=$(ALLINCLUSIVE)]  [ONLY_DOWNLOAD=$(ONLY_DOWNLOAD)]"
 	@if [ "$(ALLINCLUSIVE)" = "true" -o  $(ONLY_DOWNLOAD) = "true" ]; then \
 		rm -f $(DOWNLOAD_SH) ;\
-		$(PYSTACHE) $(DOWNLOAD_SH_IN) $(BUILD_JSON) > $(DOWNLOAD_SH) ;\
+		$(MUSTACHE) $(BUILD_JSON) $(DOWNLOAD_SH_IN) > $(DOWNLOAD_SH) ;\
 		chmod +x $(DOWNLOAD_SH) ;\
 		if [ ! -d "$(DL_DIR)" ]; then mkdir -p "$(DL_DIR)"; fi ;\
 		DEST_DIR=$(DL_DIR) $(DOWNLOAD_SH) ;\
 	fi
 	
 	
-build: download clean copy_from_src
+build: download pdf clean copy_from_src
 	@make build_json
 	
+	@echo "* Creating $(CONTROL)"
+	@rm -f $(CONTROL)
+	@$(MUSTACHE) $(BUILD_JSON) $(CONTROL_IN) > $(CONTROL)
+
 	for F in $(FILES_OPSI_IN); do \
 		echo "* Creating OPSI/$$F"; \
 		rm -f $(BUILD_DIR)/OPSI/$$F; \
-		${PYSTACHE} $(SRC_DIR)/OPSI/$$F.in $(BUILD_JSON) > $(BUILD_DIR)/OPSI/$$F; \
-	done	
+		$(MUSTACHE) $(BUILD_JSON) $(SRC_DIR)/OPSI/$$F.in > $(BUILD_DIR)/OPSI/$$F; \
+	done
+
+	for E in txt md pdf; do \
+		if [ -e readme.$$E ]; then \
+			echo "Copying additional file: readme.$$E"; \
+			cp -f readme.$$E $(BUILD_DIR)/OPSI/; \
+		fi; \
+	done
 	
 	if [ -e $(BUILD_DIR)/OPSI/control -a -e changelog ]; then \
-		cat changelog >> $(BUILD_DIR)/OPSI/control; \
+		if [ -n "$(CHANGELOG_TGT)" ]; then \
+			echo "* Using separate CHANGELOG file."; \
+			echo "The logs were moved to $(CHANGELOG_TGT)" >> $(BUILD_DIR)/OPSI/control; \
+			cp -f changelog $(BUILD_DIR)/OPSI/$(CHANGELOG_TGT); \
+		else \
+			echo "* Including changelogs in CONTROL file."; \
+			cat changelog >> $(BUILD_DIR)/OPSI/control; \
+		fi; \
 	fi
 	
 	for F in $(FILES_IN); do \
 		echo "* Creating CLIENT_DATA/$$F"; \
-		rm -f $(BUILD_DIR)/CLIENT_DATA/$$F; \
-		${PYSTACHE} $(SRC_DIR)/CLIENT_DATA/$$F.in $(BUILD_JSON) > $(BUILD_DIR)/CLIENT_DATA/$$F; \
+		rm -f $(BUILD_DIR)CLIENT_DATA/$$F; \
+		${MUSTACHE} $(BUILD_JSON) $(SRC_DIR)/CLIENT_DATA/$$F.in > $(BUILD_DIR)/CLIENT_DATA/$$F; \
 	done
 	chmod +x $(BUILD_DIR)/CLIENT_DATA/*.sh
 	
