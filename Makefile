@@ -1,18 +1,23 @@
 ############################################################
 # OPSI package Makefile (CLAWS-MAIL)
-# Version: 2.4.0
+# Version: 2.5.0
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2021-03-08 08:55:46 +0100
+# 2021-07-19 07:44:34 +0200
 ############################################################
 
-.PHONY: header clean mpimsp mpimsp_test o4i o4i_test dfn dfn_test all_test all_prod all help pdf
+.PHONY: header clean mpimsp mpimsp_test o4i o4i_test dfn dfn_test all_test all_prod all help pdf download
 .DEFAULT_GOAL := help
 
 ### defaults:
 DEFAULT_SPEC = spec.json
-DEFAULT_ALLINC = true
+DEFAULT_ALLINC = false
 DEFAULT_KEEPFILES = false
 DEFAULT_ARCHIVEFORMAT = cpio
+
+ifeq ($(ORGNAME),$(filter $(ORGNAME),O4I DFN))
+	override DEFAULT_ALLINC = true
+endif
+
 ### to keep the changelog inside the control set CHANGELOG_TGT to an empty string
 ### otherwise the given filename will be used:
 CHANGELOG_TGT = changelog.txt
@@ -137,6 +142,7 @@ var_test:
 	@echo "* $(NUM_FILES) files found"
 	@echo "=================================================================="
 
+
 header:
 	@echo "=================================================================="
 	@echo "                      Building OPSI package(s)"
@@ -199,6 +205,7 @@ dfn: header
 			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="release"  			\
+			LEGACY="true"               \
 	build
 
 dfn_test: header
@@ -207,6 +214,7 @@ dfn_test: header
 			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
+			LEGACY="true"               \
 	build
 
 dfn_test_0: header
@@ -215,6 +223,7 @@ dfn_test_0: header
 			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
+			LEGACY="true"               \
 	build
 
 dfn_test_noprefix: header
@@ -223,10 +232,10 @@ dfn_test_noprefix: header
 			ORGNAME="O4I"    			\
 			ORGPREFIX="dfn_" 			\
 			STAGE="testing"  			\
+			LEGACY="true"               \
 	build
 
 
-		
 help: header
 	@echo "Valid targets: "
 	@echo "	mpimsp"
@@ -301,7 +310,7 @@ pdf:
 				-V mainfont="DejaVu Serif" \
 				-V monofont="DejaVu Sans Mono" \
 				-o "readme.pdf"; \
-			rm -f $(BUILD_DIR)/readme_tmp.md \
+			rm -f $(BUILD_DIR)/readme_tmp.md; \
 		else \
 			echo "* readme.pdf seems to be up to date"; \
 		fi \
@@ -315,6 +324,7 @@ build_dirs:
 	@if [ ! -d "$(BUILD_DIR)/OPSI" ]; then mkdir -p "$(BUILD_DIR)/OPSI"; fi
 	@if [ ! -d "$(BUILD_DIR)/CLIENT_DATA" ]; then mkdir -p "$(BUILD_DIR)/CLIENT_DATA"; fi
 	@if [ ! -d "$(PACKAGE_DIR)" ]; then mkdir -p "$(PACKAGE_DIR)"; fi
+
 build_md5:
 	@echo "* Creating md5sum file for installation archives ($(MD5SUM_FILE))"
 	if [ -f "$(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE)" ]; then \
@@ -325,13 +335,17 @@ build_md5:
 
 copy_from_src:	build_dirs build_md5
 	@echo "* Copying files"
-	@cp -upL $(SRC_DIR)/CLIENT_DATA/LICENSE  $(BUILD_DIR)/CLIENT_DATA/
-	@cp -upL $(SRC_DIR)/CLIENT_DATA/readme.md  $(BUILD_DIR)/CLIENT_DATA/
-	@cp -upr $(SRC_DIR)/CLIENT_DATA/bin  $(BUILD_DIR)/CLIENT_DATA/
+	@cp -upL $(SRC_DIR)/CLIENT_DATA/LICENSE   $(BUILD_DIR)/CLIENT_DATA/
+	@cp -upL $(SRC_DIR)/CLIENT_DATA/readme.md $(BUILD_DIR)/CLIENT_DATA/
+	@cp -upr $(SRC_DIR)/CLIENT_DATA/bin       $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiscript  $(BUILD_DIR)/CLIENT_DATA/
 	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsiinc     $(BUILD_DIR)/CLIENT_DATA/
-	# @cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsilib     $(BUILD_DIR)/CLIENT_DATA/
-	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsifunc     $(BUILD_DIR)/CLIENT_DATA/
+	# @cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsilib   $(BUILD_DIR)/CLIENT_DATA/
+	@cp -upr $(SRC_DIR)/CLIENT_DATA/*.opsifunc    $(BUILD_DIR)/CLIENT_DATA/
+
+	@if [ -f  "readme.pdf" ] ; then cp -upL readme.pdf   $(BUILD_DIR)/CLIENT_DATA/; fi
+	@if [ -f  "changelog" ]  ; then cp -upL changelog    $(BUILD_DIR)/CLIENT_DATA/changelog.txt; fi
+
 	@$(eval NUM_FILES := $(shell ls -l $(DL_DIR)/$(FILES_MASK) 2>/dev/null | wc -l))
 	@if [ "$(ALLINCLUSIVE)" = "true" ]; then \
 		echo "  * building batteries included package"; \
@@ -353,8 +367,8 @@ copy_from_src:	build_dirs build_md5
 		rm -rf $(BUILD_DIR)/CLIENT_DATA/files ; \
 	fi
 	@if [ -d "$(SRC_DIR)/CLIENT_DATA/custom" ]; then  cp -upr $(SRC_DIR)/CLIENT_DATA/custom     $(BUILD_DIR)/CLIENT_DATA/ ; fi
-	@if [ -d "$(SRC_DIR)/CLIENT_DATA/files" ];  then  cp -upr $(SRC_DIR)/CLIENT_DATA/files      $(BUILD_DIR)/CLIENT_DATA/ ; fi
-	@if [ -d "$(SRC_DIR)/CLIENT_DATA/images" ];  then  \
+	@if [ -d "$(SRC_DIR)/CLIENT_DATA/files" ] ; then  cp -upr $(SRC_DIR)/CLIENT_DATA/files      $(BUILD_DIR)/CLIENT_DATA/ ; fi
+	@if [ -d "$(SRC_DIR)/CLIENT_DATA/images" ]; then  \
 		mkdir -p "$(BUILD_DIR)/CLIENT_DATA/images"; \
 		cp -up $(SRC_DIR)/CLIENT_DATA/images/*.png  $(BUILD_DIR)/CLIENT_DATA/images/; \
 	fi
@@ -376,6 +390,7 @@ build_json:
               \"M_ORGNAME\"    : \"$(ORGNAME)\",\n\
               \"M_ORGPREFIX\"  : \"$(ORGPREFIX)\",\n\
               \"M_TESTPREFIX\" : \"$(TESTPREFIX)\",\n\
+              \"M_ALLINC\"     : \"$(ALLINCLUSIVE)\",\n\
               \"M_LEGACY\"     : \"$(LEGACY)\",\n\
               \"M_KEEPFILES\"  : \"$(KEEPFILES)\",\n\
               \"M_TESTING\"    : \"$(TESTING)\"\n}"      > $(TMP_FILE)
@@ -427,10 +442,14 @@ build: download pdf clean copy_from_src
 	
 	for F in $(FILES_IN); do \
 		echo "* Creating CLIENT_DATA/$$F"; \
-		rm -f $(BUILD_DIR)CLIENT_DATA/$$F; \
+		rm -f $(BUILD_DIR)/CLIENT_DATA/$$F; \
 		${MUSTACHE} $(BUILD_JSON) $(SRC_DIR)/CLIENT_DATA/$$F.in > $(BUILD_DIR)/CLIENT_DATA/$$F; \
 	done
-	chmod +x $(BUILD_DIR)/CLIENT_DATA/*.sh
+	@if [ "$(ALLINCLUSIVE)" = "true" ]; then \
+		rm -f $(BUILD_DIR)/CLIENT_DATA/product_downloader.sh; \
+	fi
+	find $(BUILD_DIR)/CLIENT_DATA -type f -name "*.sh" -exec chmod +x {} \;
+	@#chmod +x $(BUILD_DIR)/CLIENT_DATA/*.sh; \
 	
 	@echo "* OPSI Archive Format: $(BUILD_FORMAT)"
 	@echo "* Building OPSI package"
@@ -446,8 +465,8 @@ build: download pdf clean copy_from_src
 	cd $(CURDIR)
 
 
-all_test:  header mpimsp_test o4i_test dfn_test dfn_test_0
+all_test:  header download mpimsp_test o4i_test dfn_test dfn_test_0
 
-all_prod : header mpimsp o4i dfn
+all_prod : header download mpimsp o4i dfn
 
-all : header mpimsp o4i dfn mpimsp_test dfn_test dfn_test_0
+all : header download mpimsp o4i dfn mpimsp_test dfn_test dfn_test_0

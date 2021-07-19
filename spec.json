@@ -1,7 +1,7 @@
 {  
 	"_": "=== OPSI package variables ===",
-	"O_PKG_VER"                : "9",
-	"O_SOFTWARE_VER"           : "3.17.8",
+	"O_PKG_VER"                : "11",
+	"O_SOFTWARE_VER"           : "3.18.0",
 	"O_SOFTWARE_BUILD"         : "1",
 	"O_SOFTWARE"               : "claws-mail",
 	"O_RELEASE_DATE"           : "{{M_TODAY}}",

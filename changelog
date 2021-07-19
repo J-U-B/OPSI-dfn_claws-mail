@@ -1,3 +1,15 @@
+claws-mail 3.18.0-11
+	* product update to 3.18.0
+	* dfn package reaches phase 3 of the displacement by the o4i package (logError (entire functionality))
+	* added encoding to *.opsiscript
+	* copy changelog and readme.pdf also to CLIENT_DATA
+	* Makefile: make ALLINC=true default for o4i
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2021-07-19 07:47:09 +0200
+
+claws-mail 3.17.8.1-10
+	* dfn package reaches phase 2 of the displacement by the o4i package
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2021-03-29 08:02:32 +0200
+	
 claws-mail 3.17.8.1-9
 	* product update to 3.17.8-1
 	* downloader: support for curl; default is now curl
