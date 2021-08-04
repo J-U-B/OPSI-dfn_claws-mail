@@ -1,8 +1,8 @@
 ############################################################
 # OPSI package Makefile (CLAWS-MAIL)
-# Version: 2.5.0
+# Version: 2.5.1
 # Jens Boettge <boettge@mpi-halle.mpg.de>
-# 2021-07-19 07:44:34 +0200
+# 2021-08-04 22:08:17 +0200
 ############################################################
 
 .PHONY: header clean mpimsp mpimsp_test o4i o4i_test dfn dfn_test all_test all_prod all help pdf download
@@ -330,8 +330,8 @@ build_md5:
 	if [ -f "$(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE)" ]; then \
 		rm -f $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE); \
 	fi
-	@grep -i "$(SW_NAME).$(SW_VER)." $(DL_DIR)/$(MD5SUM_FILE)>> $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE) 
-	
+	@grep -i "$(SW_NAME).$(SW_VER).$(SW_BUILD)" $(DL_DIR)/$(MD5SUM_FILE)>> $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE) && \
+	cat $(BUILD_DIR)/CLIENT_DATA/$(MD5SUM_FILE)
 
 copy_from_src:	build_dirs build_md5
 	@echo "* Copying files"
