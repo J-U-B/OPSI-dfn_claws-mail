@@ -1,8 +1,8 @@
 {  
 	"_": "=== OPSI package variables ===",
 	"O_PKG_VER"                : "12",
-	"O_SOFTWARE_VER"           : "3.18.0",
-	"O_SOFTWARE_BUILD"         : "2",
+	"O_SOFTWARE_VER"           : "4.0.0",
+	"O_SOFTWARE_BUILD"         : "1",
 	"O_SOFTWARE"               : "claws-mail",
 	"O_RELEASE_DATE"           : "{{M_TODAY}}",
 	"O_INST_LOG"               : "/tmp/{{M_ORGPREFIX}}claws-mail__opsi_package_install.log",

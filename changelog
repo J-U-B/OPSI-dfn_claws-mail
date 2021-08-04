@@ -1,3 +1,8 @@
+claws-mail 4.0.0.1-12
+    * product update to 4.0.0-1
+    * adjusted link to changelogs
+	-- J. Boettge <boettge@mpi-halle.mpg.de>  2021-08-04 22:29:03 +0200
+    
 claws-mail 3.18.0.2-12
     * product update to 3.18.0-2
     * adjust Makefile for building claws-mail.md5sums

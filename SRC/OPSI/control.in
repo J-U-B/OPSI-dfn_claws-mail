@@ -1,6 +1,6 @@
 {{! ========================================================================== }}
 {{!  Claws-Mails CONTROL                                                       }}
-{{!  J. Boettge <boettge@mpi-halle.mpg.de> 2021-03-08 09:13:53 +0100           }}
+{{!  J. Boettge <boettge@mpi-halle.mpg.de> 2021-08-04 22:28:13 +0200           }}
 {{! ========================================================================== }}
 [Package]
 version: {{O_PKG_VER}}
@@ -18,7 +18,7 @@ description: An user-friendly, lightweight, and fast email client (and news read
  Release date: {{O_RELEASE_DATE}}
  ___
  Homepage: http://www.claws-mail.org/
- Changelog: https://www.claws-mail.org/NEWS
+ Changelog: https://www.claws-mail.org/news.php
 {{^ifdef_legacy}}
 advice: The 64 bit version is still marked as experimental by the ClawsMail developers.
 {{/ifdef_legacy}}
